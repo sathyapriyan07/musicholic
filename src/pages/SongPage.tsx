@@ -12,6 +12,7 @@ export default function SongPage() {
   const { id } = useParams<{ id: string }>()
   const [song, setSong] = useState<Song | null>(null)
   const [relatedSongs, setRelatedSongs] = useState<Song[]>([])
+  const [albumSongs, setAlbumSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -49,6 +50,26 @@ export default function SongPage() {
             limit: 10,
           })
           setRelatedSongs(related)
+        }
+
+        if (songData.album_id) {
+          const { data: albumSongsData } = await supabase
+            .from('songs')
+            .select('*, album:albums(*, artist:artists(*))')
+            .eq('album_id', songData.album_id)
+            .neq('id', id)
+            .limit(10)
+          if (albumSongsData) {
+            const enriched = await Promise.all(
+              albumSongsData.map(async (s: any) => {
+                const artistData = await fetchSongsWithArtists({
+                  filter: (q: any) => q.eq('id', s.id),
+                })
+                return { ...s, artists: artistData[0]?.artists || [] }
+              })
+            )
+            setAlbumSongs(enriched)
+          }
         }
       }
       setLoading(false)
@@ -147,6 +168,18 @@ export default function SongPage() {
           <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Preview</p>
           <div className="max-w-2xl">
             <YouTubeEmbed url={song.youtube_embed_url} />
+          </div>
+        </div>
+      )}
+
+      {/* More from album */}
+      {albumSongs.length > 0 && (
+        <div className="px-5 lg:px-8 mb-10">
+          <h2 className="text-[22px] font-bold tracking-tight mb-4">More from this album</h2>
+          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            {albumSongs.map((s) => (
+              <SongCard key={s.id} song={s} />
+            ))}
           </div>
         </div>
       )}

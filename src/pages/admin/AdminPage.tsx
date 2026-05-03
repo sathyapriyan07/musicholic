@@ -8,8 +8,9 @@ import type { Song, Artist, Album, PlatformKey, ArtistPlatformKey } from '@/type
 import { PLATFORM_CONFIG, ARTIST_PLATFORM_CONFIG } from '@/types'
 import { cn } from '@/lib/utils'
 import { getYouTubeThumbnail } from '@/lib/utils'
+import ITunesImport from './iTunesImport'
 
-type AdminTab = 'songs' | 'artists' | 'albums'
+type AdminTab = 'songs' | 'artists' | 'albums' | 'itunes'
 
 // Shared input class helper
 const inputClass = 'w-full rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]'
@@ -108,6 +109,7 @@ export default function AdminPage() {
     { key: 'songs', label: 'Songs' },
     { key: 'artists', label: 'Artists' },
     { key: 'albums', label: 'Albums' },
+    { key: 'itunes', label: 'iTunes Import' },
   ]
 
   return (
@@ -136,6 +138,9 @@ export default function AdminPage() {
       )}
       {activeTab === 'albums' && (
         <AlbumsTab albums={filteredAlbums} artists={artists} showForm={showAlbumForm} setShowForm={setShowAlbumForm} editingAlbum={editingAlbum} setEditingAlbum={setEditingAlbum} onSaved={fetchData} search={albumSearch} setSearch={setAlbumSearch} />
+      )}
+      {activeTab === 'itunes' && (
+        <ITunesImport artists={artists} onImported={fetchData} />
       )}
     </div>
   )
