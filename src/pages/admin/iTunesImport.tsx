@@ -18,8 +18,7 @@ interface iTunesResult {
 
 type SearchType = 'song' | 'album'
 
-export default function ITunesImport({ artists, onImported }: {
-  artists: Artist[]
+export default function ITunesImport({ onImported }: {
   onImported: () => void
 }) {
   const [query, setQuery] = useState('')
@@ -63,7 +62,8 @@ export default function ITunesImport({ artists, onImported }: {
       const artistIds: string[] = []
 
       for (const name of artistNames) {
-        const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
+        const { data: existingArtist } = await (supabase.from('artists') as any)
+          .select('id, image').ilike('name', name).maybeSingle()
         if (existingArtist) {
           artistIds.push(existingArtist.id)
           if (!existingArtist.image) {
@@ -126,7 +126,8 @@ export default function ITunesImport({ artists, onImported }: {
       // First, upsert all unique artists from the album
       const albumArtistIds: string[] = []
       for (const name of artistNames) {
-        const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
+        const { data: existingArtist } = await (supabase.from('artists') as any)
+          .select('id, image').ilike('name', name).maybeSingle()
         if (existingArtist) {
           albumArtistIds.push(existingArtist.id)
           if (!existingArtist.image) {
@@ -164,10 +165,12 @@ export default function ITunesImport({ artists, onImported }: {
 
         // Get artists for this specific track
         const trackArtistNames = parseArtistNames(track.artistName || item.artistName)
-        const trackArtistIds = albumArtistIds.filter(id => {
-          const artist = artists.find(a => a.id === id)
-          return artist && trackArtistNames.some(name => name.toLowerCase() === artist.name.toLowerCase())
-        })
+        const trackArtistIds: string[] = []
+        for (const name of trackArtistNames) {
+          const { data: existing } = await (supabase.from('artists') as any)
+            .select('id').ilike('name', name).maybeSingle()
+          if (existing) trackArtistIds.push(existing.id)
+        }
 
         const finalArtistIds = trackArtistIds.length > 0 ? trackArtistIds : albumArtistIds
 

@@ -141,7 +141,7 @@ export default function AdminPage() {
         <AlbumsTab albums={filteredAlbums} artists={artists} showForm={showAlbumForm} setShowForm={setShowAlbumForm} editingAlbum={editingAlbum} setEditingAlbum={setEditingAlbum} onSaved={fetchData} search={albumSearch} setSearch={setAlbumSearch} />
       )}
       {activeTab === 'itunes' && (
-        <ITunesImport artists={artists} onImported={fetchData} />
+        <ITunesImport onImported={fetchData} />
       )}
 
       {activeTab === 'songs' && filteredSongs.length > 0 && (
