@@ -23,6 +23,7 @@ export interface Song {
   youtube_embed_url: string | null
   artist_ids: string[]
   album_id: string | null
+  lyrics: string | null
   created_at: string
   artists?: Artist[]
   album?: Album

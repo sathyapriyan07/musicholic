@@ -191,6 +191,17 @@ export default function SongPage() {
         </div>
       )}
 
+      {/* Lyrics */}
+      {song.lyrics && (
+        <div className="px-5 lg:px-8 mb-10">
+          <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Lyrics</p>
+          <div className="max-w-2xl rounded-2xl p-6 whitespace-pre-wrap text-[14px] leading-relaxed"
+            style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)', color: 'var(--am-text)' }}>
+            {song.lyrics}
+          </div>
+        </div>
+      )}
+
       {/* More from album */}
       {albumSongs.length > 0 && (
         <div className="px-5 lg:px-8 mb-10">

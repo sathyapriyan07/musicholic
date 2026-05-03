@@ -30,6 +30,7 @@ create table if not exists songs (
   youtube_embed_url text,
   artist_ids uuid[] default '{}',
   album_id uuid references albums(id) on delete set null,
+  lyrics text,
   created_at timestamptz default now()
 );
 

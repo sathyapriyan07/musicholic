@@ -162,7 +162,6 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
   const [title, setTitle] = useState('')
   const [cover, setCover] = useState('')
   const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [lyrics, setLyrics] = useState('')
   const [songArtists, setSongArtists] = useState<{ artistId: string; role: string; position: number }[]>([{ artistId: '', role: 'primary', position: 0 }])
   const [albumId, setAlbumId] = useState('')
   const [links, setLinks] = useState<{ platform: PlatformKey; url: string }[]>([])
@@ -170,24 +169,16 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
 
   useEffect(() => {
     if (editingSong) {
-      setTitle(editingSong.title); setCover(editingSong.cover || ''); setYoutubeUrl(editingSong.youtube_embed_url || ''); setLyrics(editingSong.lyrics || '')
-      if (editingSong.song_artists && editingSong.song_artists.length > 0) {
-        setSongArtists(editingSong.song_artists.map((sa: any) => ({
-          artistId: sa.artist_id,
-          role: sa.role || 'featured',
-          position: sa.position || 0
-        })))
-      } else {
-        setSongArtists(editingSong.artist_ids?.map((id, i) => ({ artistId: id, role: i === 0 ? 'primary' : 'featured', position: i })) || [{ artistId: '', role: 'primary', position: 0 }])
-      }
-      setAlbumId(editingSong.album_id || '')
-      setLinks((editingSong.links || []).map((l: any) => ({ platform: l.platform as PlatformKey, url: l.url })))
+      setTitle(editingSong.title); setCover(editingSong.cover || ''); setYoutubeUrl(editingSong.youtube_embed_url || '')
+      setSelectedArtistIds(editingSong.artist_ids || []); setAlbumId(editingSong.album_id || '')
+      setLyrics(editingSong.lyrics || '')
+      setLinks((editingSong.links || []).map(l => ({ platform: l.platform as PlatformKey, url: l.url })))
       setShowForm(true)
     }
   }, [editingSong])
 
   function resetForm() {
-    setTitle(''); setCover(''); setYoutubeUrl(''); setLyrics('')
+    setTitle(''); setCover(''); setYoutubeUrl('')
     setSongArtists([{ artistId: '', role: 'primary', position: 0 }])
     setAlbumId(''); setLinks([])
     setEditingSong(null); setShowForm(false)
@@ -203,7 +194,7 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
     if (editingSong) {
       await (supabase.from('songs') as any).update({
         title: title.trim(), cover: cover.trim() || null, youtube_embed_url: youtubeUrl.trim() || null,
-        artist_ids: artistIds, album_id: albumId || null, lyrics: lyrics.trim() || null
+        artist_ids: artistIds, album_id: albumId || null
       }).eq('id', editingSong.id)
 
       await supabase.from('song_artists').delete().eq('song_id', editingSong.id)
@@ -219,7 +210,7 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
     } else {
       const { data } = await (supabase.from('songs') as any).insert({
         title: title.trim(), cover: cover.trim() || null, youtube_embed_url: youtubeUrl.trim() || null,
-        artist_ids: artistIds, album_id: albumId || null, lyrics: lyrics.trim() || null
+        artist_ids: artistIds, album_id: albumId || null
       }).select().single()
       if (data) {
         for (const [index, sa] of songArtists.filter(sa => sa.artistId).entries()) {
@@ -439,8 +430,8 @@ function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingA
   }
 
   function resetForm() {
-    setName(''); setImage(''); setBio(''); setArtistLinks([])
-    setEditingArtist(null); setShowForm(false)
+    setTitle(''); setCover(''); setYoutubeUrl(''); setSelectedArtistIds([]); setAlbumId(''); setLyrics(''); setLinks([])
+    setEditingSong(null); setShowForm(false)
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -657,13 +648,31 @@ function AlbumsTab({ albums, artists, showForm, setShowForm, editingAlbum, setEd
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!title.trim() || !artistId) return
+    if (!title.trim()) return
     setLoading(true)
-    if (editingAlbum) {
-      await (supabase.from('albums') as any).update({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId }).eq('id', editingAlbum.id)
+
+    if (editingSong) {
+      await (supabase.from('songs') as any).update({
+        title: title.trim(), cover: cover.trim() || null, youtube_embed_url: youtubeUrl.trim() || null,
+        artist_ids: selectedArtistIds, album_id: albumId || null, lyrics: lyrics.trim() || null
+      }).eq('id', editingSong.id)
+      if (editingSong.links) await supabase.from('links').delete().eq('song_id', editingSong.id)
+      for (const link of links) {
+        if (link.url.trim()) await (supabase.from('links') as any).insert({ song_id: editingSong.id, platform: link.platform, url: link.url.trim() })
+      }
     } else {
-      await (supabase.from('albums') as any).insert({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId })
+      const { data } = await (supabase.from('songs') as any).insert({
+        title: title.trim(), cover: cover.trim() || null, youtube_embed_url: youtubeUrl.trim() || null,
+        artist_ids: selectedArtistIds, album_id: albumId || null, lyrics: lyrics.trim() || null
+      }).select().single()
+      if (data) {
+        for (const link of links) {
+          if (link.url.trim()) await (supabase.from('links') as any).insert({ song_id: (data as Song).id, platform: link.platform, url: link.url.trim() })
+        }
+      }
     }
+    resetForm(); onSaved(); setLoading(false)
+  }
     resetForm(); onSaved(); setLoading(false)
   }
 
