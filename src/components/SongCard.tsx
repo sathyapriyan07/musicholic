@@ -11,22 +11,22 @@ interface SongCardProps {
 }
 
 const sizeMap = {
-  sm: { card: 'w-28', img: 'w-28 aspect-square' },
-  md: { card: 'w-36', img: 'w-36 aspect-square' },
-  lg: { card: 'w-44', img: 'w-44 aspect-square' },
+  sm: { card: 'w-20', img: 'w-20 aspect-video' },
+  md: { card: 'w-28', img: 'w-28 aspect-video' },
+  lg: { card: 'w-36', img: 'w-36 aspect-video' },
 }
 
 export default function SongCard({ song, size = 'md', showArtists = true }: SongCardProps) {
   const s = sizeMap[size]
-  const coverImage = song.cover || getYouTubeThumbnail(song.youtube_embed_url)
+  const youtubeThumb = getYouTubeThumbnail(song.youtube_embed_url)
 
   return (
     <Link to={`/song/${song.id}`} className={cn('group flex-shrink-0 cursor-pointer', s.card)}>
       <div className="relative overflow-hidden rounded-xl transition-transform duration-200 group-hover:scale-[1.03]"
         style={{ background: 'var(--am-surface-2)' }}>
-        {coverImage ? (
+        {youtubeThumb ? (
           <img
-            src={coverImage}
+            src={youtubeThumb}
             alt={song.title}
             className={cn('w-full h-full object-cover', s.img)}
             loading="lazy"
