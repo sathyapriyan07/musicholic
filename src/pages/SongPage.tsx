@@ -5,6 +5,7 @@ import YouTubeEmbed from '@/components/YouTubeEmbed'
 import PlayButtons from '@/components/PlayButtons'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import SongCard from '@/components/SongCard'
+import { getYouTubeThumbnail } from '@/lib/utils'
 import type { Song, Artist } from '@/types'
 
 export default function SongPage() {
@@ -65,11 +66,11 @@ export default function SongPage() {
       {/* Hero with blurred art background */}
       <div className="relative overflow-hidden">
         {/* Blurred background */}
-        {song.cover && (
+        {(song.cover || (song.album && song.album.cover) || getYouTubeThumbnail(song.youtube_embed_url)) && (
           <div
             className="absolute inset-0 scale-110"
             style={{
-              backgroundImage: `url(${song.cover})`,
+              backgroundImage: `url(${song.cover || song.album?.cover || getYouTubeThumbnail(song.youtube_embed_url)})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               filter: 'blur(40px) saturate(1.4)',
@@ -83,8 +84,8 @@ export default function SongPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 max-w-3xl">
             {/* Cover art */}
             <div className="flex-shrink-0">
-              {song.cover ? (
-                <img src={song.cover} alt={song.title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl" />
+              {song.cover || (song.album && song.album.cover) ? (
+                <img src={(song.cover || song.album?.cover) as string} alt={song.title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl" />
               ) : (
                 <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl flex items-center justify-center"
                   style={{ background: 'var(--am-surface-2)' }}>
