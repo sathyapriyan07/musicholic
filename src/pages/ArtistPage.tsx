@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import SongCard from '@/components/SongCard'
 import AlbumCard from '@/components/AlbumCard'
@@ -17,6 +17,7 @@ export default function ArtistPage() {
   const [songs, setSongs] = useState<Song[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [artistLinks, setArtistLinks] = useState<ArtistLink[]>([])
+  const [relatedArtists, setRelatedArtists] = useState<Artist[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -41,6 +42,35 @@ export default function ArtistPage() {
       setSongs(songsData)
       if (albumsData) setAlbums(albumsData as unknown as Album[])
       if (linksData) setArtistLinks(linksData as unknown as ArtistLink[])
+
+      // Fetch related artists (artists who appear on same songs)
+      if (id) {
+        const { data: songArtistsData } = await supabase
+          .from('song_artists')
+          .select('song_id')
+          .eq('artist_id', id)
+        
+        if (songArtistsData && songArtistsData.length > 0) {
+          const songIds = songArtistsData.map((sa: any) => sa.song_id)
+          
+          const { data: relatedData } = await supabase
+            .from('song_artists')
+            .select('artist_id, artist:artists(id, name, image)')
+            .in('song_id', songIds)
+            .neq('artist_id', id)
+          
+          if (relatedData) {
+            const artistMap = new Map<string, Artist>()
+            relatedData.forEach((item: any) => {
+              if (item.artist && !artistMap.has(item.artist.id)) {
+                artistMap.set(item.artist.id, item.artist as Artist)
+              }
+            })
+            setRelatedArtists(Array.from(artistMap.values()))
+          }
+        }
+      }
+      
       setLoading(false)
     }
     fetchData()
@@ -125,6 +155,29 @@ export default function ArtistPage() {
         <Shelf title="Albums">
           {albums.map((album) => (
             <AlbumCard key={album.id} album={album} showArtist={false} />
+          ))}
+        </Shelf>
+      )}
+
+      {relatedArtists.length > 0 && (
+        <Shelf title="Related Artists">
+          {relatedArtists.map((artist) => (
+            <div key={artist.id} className="flex-shrink-0 w-36">
+              <Link to={`/artist/${artist.id}`} className="block group">
+                <div className="w-36 h-36 rounded-full overflow-hidden mb-2">
+                  {artist.image ? (
+                    <img src={artist.image} alt={artist.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+                      <svg viewBox="0 0 24 24" className="w-12 h-12" style={{ fill: 'var(--am-text-3)' }}>
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[13px] font-semibold truncate text-center">{artist.name}</p>
+              </Link>
+            </div>
           ))}
         </Shelf>
       )}
