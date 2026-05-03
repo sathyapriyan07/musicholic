@@ -66,11 +66,11 @@ export default function SongPage() {
       {/* Hero with blurred art background */}
       <div className="relative overflow-hidden">
         {/* Blurred background */}
-        {(song.cover || (song.album && song.album.cover) || getYouTubeThumbnail(song.youtube_embed_url)) && (
+        {(song.cover || (song.album && song.album.cover) || (song.artists && song.artists[0]?.image) || getYouTubeThumbnail(song.youtube_embed_url)) && (
           <div
             className="absolute inset-0 scale-110"
             style={{
-              backgroundImage: `url(${song.cover || song.album?.cover || getYouTubeThumbnail(song.youtube_embed_url)})`,
+              backgroundImage: `url(${song.cover || song.album?.cover || song.artists?.[0]?.image || getYouTubeThumbnail(song.youtube_embed_url)})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               filter: 'blur(40px) saturate(1.4)',
@@ -84,8 +84,8 @@ export default function SongPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 max-w-3xl">
             {/* Cover art */}
             <div className="flex-shrink-0">
-              {song.cover || (song.album && song.album.cover) ? (
-                <img src={(song.cover || song.album?.cover) as string} alt={song.title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl" />
+              {song.cover || (song.album && song.album.cover) || (song.artists && song.artists[0]?.image) ? (
+                <img src={(song.cover || song.album?.cover || song.artists?.[0]?.image) as string} alt={song.title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl" />
               ) : (
                 <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl flex items-center justify-center"
                   style={{ background: 'var(--am-surface-2)' }}>
@@ -102,14 +102,20 @@ export default function SongPage() {
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 leading-tight">{song.title}</h1>
 
               {song.artists && song.artists.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                  {song.artists.map((artist: Artist, i: number) => (
-                    <span key={artist.id}>
-                      <Link to={`/artist/${artist.id}`} className="font-semibold hover:underline text-[15px]" style={{ color: 'var(--am-accent)' }}>
-                        {artist.name}
-                      </Link>
-                      {i < song.artists!.length - 1 && <span style={{ color: 'var(--am-text-3)' }}>{', '}</span>}
-                    </span>
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  {song.artists.map((artist: Artist) => (
+                    <Link key={artist.id} to={`/artist/${artist.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                      {artist.image ? (
+                        <img src={artist.image} alt={artist.name} className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
+                          <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ fill: 'var(--am-text-3)' }}>
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          </svg>
+                        </div>
+                      )}
+                      <span className="font-semibold text-[15px]" style={{ color: 'var(--am-accent)' }}>{artist.name}</span>
+                    </Link>
                   ))}
                 </div>
               )}
