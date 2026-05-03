@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-accent: #fc3c44;
+  --color-accent-light: #ff6b70;
+  --color-am-bg: #0a0a0a;
+  --color-am-surface: #161616;
+  --color-am-surface-2: #1c1c1e;
+  --color-am-surface-3: #2a2a2a;
+  --color-am-text: #ffffff;
+  --color-am-text-2: #a0a0a0;
+  --color-am-text-3: #555555;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+:root {
+  /* Apple Music design tokens */
+  --am-bg: #0a0a0a;
+  --am-surface: #161616;
+  --am-surface-2: #1c1c1e;
+  --am-surface-3: #2a2a2a;
+  --am-surface-hover: #222222;
+  --am-accent: #fc3c44;
+  --am-accent-hover: #e52d35;
+  --am-accent-light: #ff6b70;
+  --am-text: #ffffff;
+  --am-text-2: #a0a0a0;
+  --am-text-3: #555555;
+  --am-border: rgba(255, 255, 255, 0.08);
+  --am-divider: rgba(255, 255, 255, 0.05);
+  --am-nav-bg: rgba(10, 10, 10, 0.88);
+  --am-card-radius: 12px;
+
+  /* Legacy aliases for yt- vars (used in AdminPage selects, inputs) */
+  --yt-bg: var(--am-bg);
+  --yt-surface: var(--am-surface);
+  --yt-surface-hover: var(--am-surface-hover);
+  --yt-elevated: var(--am-surface-2);
+  --yt-overlay: var(--am-surface-3);
+  --yt-white: #f1f1f1;
+  --yt-text: var(--am-text);
+  --yt-text-secondary: var(--am-text-2);
+  --yt-text-muted: var(--am-text-3);
+  --yt-red: var(--am-accent);
+  --yt-red-hover: var(--am-accent-hover);
+  --yt-divider: var(--am-divider);
+  --yt-border: var(--am-border);
+  --yt-chip-bg: var(--am-surface-2);
+  --yt-chip-active: #f1f1f1;
+  --yt-chip-active-text: #0f0f0f;
+  --yt-search-bg: var(--am-surface-2);
+  --yt-search-border: rgba(255, 255, 255, 0.2);
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--am-bg);
+    color: var(--am-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: inherit;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+    color: inherit;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+}
+
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
