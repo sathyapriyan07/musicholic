@@ -11,9 +11,9 @@ interface SongCardProps {
 }
 
 const sizeMap = {
-  sm: { card: 'w-28', img: 'w-28 aspect-video' },
-  md: { card: 'w-36', img: 'w-36 aspect-video' },
-  lg: { card: 'w-44', img: 'w-44 aspect-video' },
+  sm: { card: 'w-28', img: 'w-28 aspect-square' },
+  md: { card: 'w-36', img: 'w-36 aspect-square' },
+  lg: { card: 'w-44', img: 'w-44 aspect-square' },
 }
 
 export default function SongCard({ song, size = 'md', showArtists = true }: SongCardProps) {
