@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import YouTubeEmbed from '@/components/YouTubeEmbed'
-import PlayButtons from '@/components/PlayButtons'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import SongCard from '@/components/SongCard'
 import { getYouTubeThumbnail } from '@/lib/utils'
-import type { Song, Artist } from '@/types'
+import type { Song, Artist, PlatformKey } from '@/types'
+import { PLATFORM_CONFIG } from '@/types'
 
 export default function SongPage() {
   const { id } = useParams<{ id: string }>()
@@ -158,7 +158,26 @@ export default function SongPage() {
       {song.links && song.links.length > 0 && (
         <div className="px-5 lg:px-8 mb-8">
           <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Listen on</p>
-          <PlayButtons links={song.links} />
+          <div className="flex flex-wrap gap-3">
+            {song.links.map((link: any) => {
+              const config = PLATFORM_CONFIG[link.platform as PlatformKey]
+              return (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full text-[11px] font-semibold transition-opacity hover:opacity-80 bg-transparent border"
+                  style={{ borderColor: 'var(--am-border)' }}
+                >
+                  {config?.logo && (
+                    <img src={config.logo} alt={config.name} className="w-5 h-5 object-contain" />
+                  )}
+                  <span style={{ color: 'var(--am-text-2)' }}>{config?.name || link.platform}</span>
+                </a>
+              )
+            })}
+          </div>
         </div>
       )}
 

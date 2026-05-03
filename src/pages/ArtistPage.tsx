@@ -126,20 +126,26 @@ export default function ArtistPage() {
 
       {artistLinks.length > 0 && (
         <div className="px-5 lg:px-8 py-4">
-          <div className="flex flex-wrap gap-3">
-            {artistLinks.map((link) => (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-opacity hover:opacity-80"
-                style={{ background: platformConfig[link.platform as keyof typeof platformConfig]?.color || 'var(--am-surface-2)', color: '#fff' }}
-              >
-                {link.platform === 'youtube' ? 'YouTube' : platformConfig[link.platform as keyof typeof platformConfig]?.name || link.platform}
-              </a>
-            ))}
-          </div>
+              <div className="flex flex-wrap gap-3">
+              {artistLinks.map((link) => {
+                const config = platformConfig[link.platform as keyof typeof platformConfig]
+                return (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-full text-[11px] font-semibold transition-opacity hover:opacity-80 bg-transparent border"
+                    style={{ borderColor: 'var(--am-border)' }}
+                  >
+                    {config?.logo && (
+                      <img src={config.logo} alt={config.name} className="w-5 h-5 object-contain" />
+                    )}
+                    <span style={{ color: 'var(--am-text-2)' }}>{config?.name || link.platform}</span>
+                  </a>
+                )
+              })}
+            </div>
         </div>
       )}
 

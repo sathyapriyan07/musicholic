@@ -27,6 +27,7 @@ export default function ITunesImport({ artists, onImported }: {
   const [results, setResults] = useState<iTunesResult[]>([])
   const [loading, setLoading] = useState(false)
   const [importingId, setImportingId] = useState<number | null>(null)
+  const [selectedResults, setSelectedResults] = useState<number[]>([])
 
   async function searchITunes() {
     if (!query.trim()) return
@@ -196,6 +197,36 @@ export default function ITunesImport({ artists, onImported }: {
     setImportingId(null)
   }
 
+  async function handleBulkImportSongs() {
+    setLoading(true)
+    try {
+      for (const item of results) {
+        if (item.trackId && !selectedResults.includes(item.trackId)) continue
+        if (!item.trackId) continue
+        await handleImportSong(item)
+      }
+      setSelectedResults([])
+      onImported()
+    } catch (e) {
+      console.error('Bulk import failed', e)
+    }
+    setLoading(false)
+  }
+
+  function toggleSelect(id: number) {
+    setSelectedResults(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    )
+  }
+
+  function selectAll() {
+    if (selectedResults.length === results.filter(r => r.trackId).length) {
+      setSelectedResults([])
+    } else {
+      setSelectedResults(results.filter(r => r.trackId).map(r => r.trackId!))
+    }
+  }
+
   return (
     <div className="rounded-2xl p-5" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
       <h3 className="text-[17px] font-bold mb-4">iTunes Import</h3>
@@ -238,11 +269,56 @@ export default function ITunesImport({ artists, onImported }: {
         </button>
       </div>
 
+      {results.length > 0 && searchType === 'song' && (
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <button
+              onClick={selectAll}
+              className="text-[12px] font-semibold hover:opacity-70"
+              style={{ color: 'var(--am-accent)' }}
+            >
+              {selectedResults.length === results.filter(r => r.trackId).length ? 'Deselect All' : 'Select All'}
+            </button>
+            <span className="text-[11px]" style={{ color: 'var(--am-text-3)' }}>
+              {selectedResults.length} of {results.filter(r => r.trackId).length} selected
+            </span>
+            <button
+              onClick={handleBulkImportSongs}
+              disabled={selectedResults.length === 0 || loading}
+              className="px-4 py-2 rounded-full text-[11px] font-semibold text-white disabled:opacity-50"
+              style={{ background: 'var(--am-accent)' }}
+            >
+              {loading ? 'Importing...' : `Import ${selectedResults.length} Songs`}
+            </button>
+          </div>
+        </div>
+      )}
+
       {results.length > 0 && (
         <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-hide">
           {results.map((item) => (
-            <div key={item.trackId || item.collectionId} className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-opacity"
-              style={{ background: 'var(--am-surface-2)' }}>
+            <div
+              key={item.trackId || item.collectionId}
+              className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-opacity cursor-pointer"
+              style={{
+                background: selectedResults.includes(item.trackId!)
+                  ? 'var(--am-surface-3)'
+                  : 'var(--am-surface-2)',
+                border: selectedResults.includes(item.trackId!)
+                  ? '1px solid var(--am-accent)'
+                  : '1px solid transparent',
+              }}
+              onClick={() => item.trackId && toggleSelect(item.trackId)}
+            >
+              {item.trackId && (
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                  selectedResults.includes(item.trackId)
+                    ? 'bg-[var(--am-accent)] border-[var(--am-accent)]'
+                    : 'border-[var(--am-text-3)]'
+                }`}>
+                  {selectedResults.includes(item.trackId) && <span className="text-white text-[10px]">✓</span>}
+                </div>
+              )}
               <img src={getHighQualityArtwork(item.artworkUrl100)} alt={item.trackName || item.collectionName} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-semibold truncate">{item.trackName || item.collectionName}</p>
@@ -252,7 +328,7 @@ export default function ITunesImport({ artists, onImported }: {
               </div>
               {searchType === 'album' ? (
                 <button
-                  onClick={() => handleImportAlbum(item)}
+                  onClick={(e) => { e.stopPropagation(); handleImportAlbum(item) }}
                   disabled={importingId === item.collectionId}
                   className="px-3 py-1.5 rounded-full text-[11px] font-semibold text-white disabled:opacity-50 flex-shrink-0"
                   style={{ background: 'var(--am-accent)' }}
@@ -261,7 +337,7 @@ export default function ITunesImport({ artists, onImported }: {
                 </button>
               ) : (
                 <button
-                  onClick={() => handleImportSong(item)}
+                  onClick={(e) => { e.stopPropagation(); handleImportSong(item) }}
                   disabled={importingId === item.trackId}
                   className="px-3 py-1.5 rounded-full text-[11px] font-semibold text-white disabled:opacity-50 flex-shrink-0"
                   style={{ background: 'var(--am-accent)' }}
