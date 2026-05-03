@@ -68,9 +68,18 @@ export default function AlbumPage() {
               <p className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--am-text-3)' }}>Album</p>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 leading-tight">{album.title}</h1>
               {artist && (
-                <p className="text-[14px]" style={{ color: 'var(--am-text-2)' }}>
-                  <Link to={`/artist/${artist.id}`} className="font-semibold hover:underline" style={{ color: 'var(--am-accent)' }}>
-                    {artist.name}
+                <p className="text-[14px] flex items-center gap-2" style={{ color: 'var(--am-text-2)' }}>
+                  <Link to={`/artist/${artist.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    {artist.image ? (
+                      <img src={artist.image} alt={artist.name} className="w-6 h-6 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
+                        <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ fill: 'var(--am-text-3)' }}>
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </div>
+                    )}
+                    <span className="font-semibold" style={{ color: 'var(--am-accent)' }}>{artist.name}</span>
                   </Link>
                   {' · '}{songs.length} {songs.length === 1 ? 'song' : 'songs'}
                 </p>
