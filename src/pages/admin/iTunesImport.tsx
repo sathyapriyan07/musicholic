@@ -157,15 +157,29 @@ export default function ITunesImport({ artists, onImported }: {
         const existingSong = await supabase.from('songs').select('id').eq('title', track.trackName).maybeSingle()
         if (existingSong.data) continue
 
+        // Parse artists for this specific track
+        const trackArtistNames = parseArtistNames(track.artistName || item.artistName)
+        const trackArtistIds: string[] = []
+
+        for (const name of trackArtistNames) {
+          const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
+          if (existingArtist) {
+            trackArtistIds.push(existingArtist.id)
+          } else {
+            const { data } = await (supabase.from('artists') as any).insert({ name }).select().single()
+            if (data) trackArtistIds.push((data as Artist).id)
+          }
+        }
+
         const { data: songData } = await (supabase.from('songs') as any).insert({
           title: track.trackName,
           cover: getHighQualityArtwork(track.artworkUrl100 || item.artworkUrl100),
-          artist_ids: artistIds,
+          artist_ids: trackArtistIds,
           album_id: albumId,
         }).select().single()
 
         if (songData) {
-          for (const [index, artistId] of artistIds.entries()) {
+          for (const [index, artistId] of trackArtistIds.entries()) {
             await (supabase.from('song_artists') as any).insert({
               song_id: (songData as Song).id,
               artist_id: artistId,
