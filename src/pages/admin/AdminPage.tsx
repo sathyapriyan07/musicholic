@@ -31,6 +31,9 @@ export default function AdminPage() {
   const [showSongForm, setShowSongForm] = useState(false)
   const [showArtistForm, setShowArtistForm] = useState(false)
   const [showAlbumForm, setShowAlbumForm] = useState(false)
+  const [songSearch, setSongSearch] = useState('')
+  const [artistSearch, setArtistSearch] = useState('')
+  const [albumSearch, setAlbumSearch] = useState('')
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) navigate('/')
@@ -85,6 +88,20 @@ export default function AdminPage() {
     setLoading(false)
   }
 
+  const filteredSongs = songs.filter(s =>
+    s.title.toLowerCase().includes(songSearch.toLowerCase()) ||
+    (s.artists as Artist[] | undefined)?.some(a => a.name.toLowerCase().includes(songSearch.toLowerCase()))
+  )
+
+  const filteredArtists = artists.filter(a =>
+    a.name.toLowerCase().includes(artistSearch.toLowerCase())
+  )
+
+  const filteredAlbums = albums.filter(a =>
+    a.title.toLowerCase().includes(albumSearch.toLowerCase()) ||
+    (a.artist as Artist | undefined)?.name.toLowerCase().includes(albumSearch.toLowerCase())
+  )
+
   if (authLoading || !user) return <LoadingSpinner />
 
   const tabs: { key: AdminTab; label: string }[] = [
@@ -112,21 +129,22 @@ export default function AdminPage() {
       </div>
 
       {activeTab === 'songs' && (
-        <SongsTab songs={songs} artists={artists} albums={albums} showForm={showSongForm} setShowForm={setShowSongForm} editingSong={editingSong} setEditingSong={setEditingSong} onSaved={fetchData} />
+        <SongsTab songs={filteredSongs} artists={artists} albums={albums} showForm={showSongForm} setShowForm={setShowSongForm} editingSong={editingSong} setEditingSong={setEditingSong} onSaved={fetchData} search={songSearch} setSearch={setSongSearch} />
       )}
       {activeTab === 'artists' && (
-        <ArtistsTab artists={artists} showForm={showArtistForm} setShowForm={setShowArtistForm} editingArtist={editingArtist} setEditingArtist={setEditingArtist} onSaved={fetchData} />
+        <ArtistsTab artists={filteredArtists} showForm={showArtistForm} setShowForm={setShowArtistForm} editingArtist={editingArtist} setEditingArtist={setEditingArtist} onSaved={fetchData} search={artistSearch} setSearch={setArtistSearch} />
       )}
       {activeTab === 'albums' && (
-        <AlbumsTab albums={albums} artists={artists} showForm={showAlbumForm} setShowForm={setShowAlbumForm} editingAlbum={editingAlbum} setEditingAlbum={setEditingAlbum} onSaved={fetchData} />
+        <AlbumsTab albums={filteredAlbums} artists={artists} showForm={showAlbumForm} setShowForm={setShowAlbumForm} editingAlbum={editingAlbum} setEditingAlbum={setEditingAlbum} onSaved={fetchData} search={albumSearch} setSearch={setAlbumSearch} />
       )}
     </div>
   )
 }
 
-function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, setEditingSong, onSaved }: {
+function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, setEditingSong, onSaved, search, setSearch }: {
   songs: Song[]; artists: Artist[]; albums: Album[]; showForm: boolean; setShowForm: (v: boolean) => void;
-  editingSong: Song | null; setEditingSong: (s: Song | null) => void; onSaved: () => void
+  editingSong: Song | null; setEditingSong: (s: Song | null) => void; onSaved: () => void;
+  search: string; setSearch: (v: string) => void
 }) {
   const [title, setTitle] = useState('')
   const [cover, setCover] = useState('')
@@ -233,6 +251,17 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
           <Plus className="w-4 h-4" /> Add Song
         </button>
       </div>
+
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search songs..."
+        className="w-full mb-4 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
+        style={{ background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }}
+        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--am-accent)')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--am-border)')}
+      />
 
       {showForm && (
         <form onSubmit={handleSubmit} className="rounded-2xl p-5 mb-8 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
@@ -360,9 +389,10 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
   )
 }
 
-function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingArtist, onSaved }: {
+function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingArtist, onSaved, search, setSearch }: {
   artists: Artist[]; showForm: boolean; setShowForm: (v: boolean) => void;
-  editingArtist: Artist | null; setEditingArtist: (a: Artist | null) => void; onSaved: () => void
+  editingArtist: Artist | null; setEditingArtist: (a: Artist | null) => void; onSaved: () => void;
+  search: string; setSearch: (v: string) => void
 }) {
   const [name, setName] = useState('')
   const [image, setImage] = useState('')
@@ -481,6 +511,17 @@ function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingA
         </button>
       </div>
 
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search artists..."
+        className="w-full mb-4 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
+        style={{ background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }}
+        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--am-accent)')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--am-border)')}
+      />
+
       {showForm && (
         <form onSubmit={handleSubmit} className="rounded-2xl p-5 mb-8 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
           <h3 className="text-[17px] font-bold">{editingArtist ? 'Edit Artist' : 'New Artist'}</h3>
@@ -578,9 +619,10 @@ function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingA
   )
 }
 
-function AlbumsTab({ albums, artists, showForm, setShowForm, editingAlbum, setEditingAlbum, onSaved }: {
+function AlbumsTab({ albums, artists, showForm, setShowForm, editingAlbum, setEditingAlbum, onSaved, search, setSearch }: {
   albums: Album[]; artists: Artist[]; showForm: boolean; setShowForm: (v: boolean) => void;
-  editingAlbum: Album | null; setEditingAlbum: (a: Album | null) => void; onSaved: () => void
+  editingAlbum: Album | null; setEditingAlbum: (a: Album | null) => void; onSaved: () => void;
+  search: string; setSearch: (v: string) => void
 }) {
   const [title, setTitle] = useState('')
   const [cover, setCover] = useState('')
@@ -616,6 +658,17 @@ function AlbumsTab({ albums, artists, showForm, setShowForm, editingAlbum, setEd
           <Plus className="w-4 h-4" /> Add Album
         </button>
       </div>
+
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search albums..."
+        className="w-full mb-4 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
+        style={{ background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }}
+        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--am-accent)')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--am-border)')}
+      />
 
       {showForm && (
         <form onSubmit={handleSubmit} className="rounded-2xl p-5 mb-8 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
