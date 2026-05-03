@@ -79,8 +79,8 @@ export type PlatformKey = Link['platform']
 export type ArtistPlatformKey = ArtistLink['platform']
 
 export const PLATFORM_CONFIG: Record<PlatformKey, { name: string; color: string; logo: string }> = {
-  spotify: { name: 'Spotify', color: '#1DB954', logo: '/Spotify_logo_without_text.svg' },
-  youtube_music: { name: 'YouTube Music', color: '#FF0000', logo: '/Youtube_Music.png' },
+  spotify: { name: 'Spotify', color: '#1DB954', logo: '/Spotify-Logo.png' },
+  youtube_music: { name: 'YouTube Music', color: '#FF0000', logo: '/YouTube_Music.png' },
   apple_music: { name: 'Apple Music', color: '#FA243C', logo: '/Apple_Music.png' },
   jiosaavn: { name: 'JioSaavn', color: '#51C457', logo: '/jiosaavn.png' },
   gaana: { name: 'Gaana', color: '#F37021', logo: '' },
@@ -88,11 +88,13 @@ export const PLATFORM_CONFIG: Record<PlatformKey, { name: string; color: string;
 }
 
 export const ARTIST_PLATFORM_CONFIG: Record<ArtistPlatformKey, { name: string; color: string; logo: string }> = {
-  spotify: { name: 'Spotify', color: '#1DB954', logo: '/Spotify_logo_without_text.svg' },
-  youtube_music: { name: 'YouTube Music', color: '#FF0000', logo: '/Youtube_Music.png' },
+  spotify: { name: 'Spotify', color: '#1DB954', logo: '/Spotify-Logo.png' },
+  youtube_music: { name: 'YouTube Music', color: '#FF0000', logo: '/YouTube_Music.png' },
   apple_music: { name: 'Apple Music', color: '#FA243C', logo: '/Apple_Music.png' },
   jiosaavn: { name: 'JioSaavn', color: '#51C457', logo: '/jiosaavn.png' },
   gaana: { name: 'Gaana', color: '#F37021', logo: '' },
   amazon_music: { name: 'Amazon Music', color: '#00A8E1', logo: '/Amazonmusic.png' },
-  youtube: { name: 'YouTube', color: '#FF0000', logo: '/Youtube_logo.png' },
+  youtube: { name: 'YouTube', color: '#FF0000', logo: '/YouTube_logo.png' },
 }
+
+
