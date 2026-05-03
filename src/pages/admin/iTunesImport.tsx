@@ -65,9 +65,10 @@ export default function ITunesImport({ artists, onImported }: {
         const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
         if (existingArtist) {
           artistIds.push(existingArtist.id)
-          // Don't overwrite artist image - keep admin uploaded image
+          if (!existingArtist.image) {
+            await (supabase.from('artists') as any).update({ image: item.artworkUrl100 }).eq('id', existingArtist.id)
+          }
         } else {
-          // Only set iTunes image for new artists
           const { data } = await (supabase.from('artists') as any).insert({ name, image: item.artworkUrl100 }).select().single()
           if (data) artistIds.push((data as Artist).id)
         }
@@ -79,7 +80,6 @@ export default function ITunesImport({ artists, onImported }: {
         if (albumData) {
           albumId = (albumData as any).id
         } else {
-          // Only set iTunes cover for new albums
           const { data } = await (supabase.from('albums') as any).insert({
             title: item.collectionName || 'Unknown Album',
             artist_id: artistIds[0],
@@ -121,69 +121,64 @@ export default function ITunesImport({ artists, onImported }: {
     try {
       const collectionId = item.collectionId
       const artistNames = parseArtistNames(item.artistName)
-      const artistIds: string[] = []
-
+      
+      // First, upsert all unique artists from the album
+      const albumArtistIds: string[] = []
       for (const name of artistNames) {
         const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
         if (existingArtist) {
-          artistIds.push(existingArtist.id)
-          // Don't overwrite artist image - keep admin uploaded image
+          albumArtistIds.push(existingArtist.id)
+          if (!existingArtist.image) {
+            await (supabase.from('artists') as any).update({ image: item.artworkUrl100 }).eq('id', existingArtist.id)
+          }
         } else {
-          // Only set iTunes image for new artists
           const { data } = await (supabase.from('artists') as any).insert({ name, image: item.artworkUrl100 }).select().single()
-          if (data) artistIds.push((data as Artist).id)
+          if (data) albumArtistIds.push((data as Artist).id)
         }
       }
 
+      // Create/get album
       let albumId: string | null = null
       const { data: existingAlbum } = await supabase.from('albums').select('*').eq('title', item.collectionName || '').maybeSingle()
       if (existingAlbum) {
         albumId = (existingAlbum as any).id
-      } else if (artistIds.length > 0) {
-        // Only set iTunes cover for new albums
+      } else if (albumArtistIds.length > 0) {
         const { data } = await (supabase.from('albums') as any).insert({
           title: item.collectionName || 'Unknown Album',
-          artist_id: artistIds[0],
+          artist_id: albumArtistIds[0],
           cover: getHighQualityArtwork(item.artworkUrl100),
         }).select().single()
         if (data) albumId = (data as Album).id
       }
 
+      // Fetch all tracks from the album
       const res = await fetch(`https://itunes.apple.com/lookup?id=${collectionId}&entity=song`)
       const data = await res.json()
       const songs = data.results?.filter((r: any) => r.wrapperType === 'track') || []
 
+      // Import each song
       for (const track of songs) {
         const existingSong = await supabase.from('songs').select('id').eq('title', track.trackName).maybeSingle()
-        if (existingSong.data) continue
+        if (existingSong.data) continue;
 
-        // Parse artists for this specific track
+        // Get artists for this specific track
         const trackArtistNames = parseArtistNames(track.artistName || item.artistName)
-        const trackArtistIds: string[] = []
+        const trackArtistIds = albumArtistIds.filter(id => {
+          const artist = artists.find(a => a.id === id)
+          return artist && trackArtistNames.some(name => name.toLowerCase() === artist.name.toLowerCase())
+        })
 
-        for (const name of trackArtistNames) {
-          const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
-          if (existingArtist) {
-            trackArtistIds.push(existingArtist.id)
-            // Upsert: update image only if artist doesn't have one
-            if (!existingArtist.image) {
-              await (supabase.from('artists') as any).update({ image: item.artworkUrl100 }).eq('id', existingArtist.id)
-            }
-          } else {
-            const { data } = await (supabase.from('artists') as any).insert({ name, image: item.artworkUrl100 }).select().single()
-            if (data) trackArtistIds.push((data as Artist).id)
-          }
-        }
+        const finalArtistIds = trackArtistIds.length > 0 ? trackArtistIds : albumArtistIds
 
         const { data: songData } = await (supabase.from('songs') as any).insert({
           title: track.trackName,
           cover: getHighQualityArtwork(track.artworkUrl100 || item.artworkUrl100),
-          artist_ids: trackArtistIds,
+          artist_ids: finalArtistIds,
           album_id: albumId,
         }).select().single()
 
         if (songData) {
-          for (const [index, artistId] of trackArtistIds.entries()) {
+          for (const [index, artistId] of finalArtistIds.entries()) {
             await (supabase.from('song_artists') as any).insert({
               song_id: (songData as Song).id,
               artist_id: artistId,
