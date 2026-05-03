@@ -165,8 +165,12 @@ export default function ITunesImport({ artists, onImported }: {
           const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
           if (existingArtist) {
             trackArtistIds.push(existingArtist.id)
+            // Upsert: update image only if artist doesn't have one
+            if (!existingArtist.image) {
+              await (supabase.from('artists') as any).update({ image: item.artworkUrl100 }).eq('id', existingArtist.id)
+            }
           } else {
-            const { data } = await (supabase.from('artists') as any).insert({ name }).select().single()
+            const { data } = await (supabase.from('artists') as any).insert({ name, image: item.artworkUrl100 }).select().single()
             if (data) trackArtistIds.push((data as Artist).id)
           }
         }

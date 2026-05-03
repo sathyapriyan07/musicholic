@@ -9,6 +9,7 @@ import { PLATFORM_CONFIG, ARTIST_PLATFORM_CONFIG } from '@/types'
 import { cn } from '@/lib/utils'
 import { getYouTubeThumbnail } from '@/lib/utils'
 import ITunesImport from './iTunesImport'
+import BulkEdit from './BulkEdit'
 
 type AdminTab = 'songs' | 'artists' | 'albums' | 'itunes'
 
@@ -141,6 +142,13 @@ export default function AdminPage() {
       )}
       {activeTab === 'itunes' && (
         <ITunesImport artists={artists} onImported={fetchData} />
+      )}
+
+      {activeTab === 'songs' && filteredSongs.length > 0 && (
+        <BulkEdit type="song" items={songs} artists={artists} onSaved={fetchData} />
+      )}
+      {activeTab === 'albums' && filteredAlbums.length > 0 && (
+        <BulkEdit type="album" items={albums} artists={artists} onSaved={fetchData} />
       )}
     </div>
   )
