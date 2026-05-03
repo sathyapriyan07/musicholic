@@ -41,44 +41,52 @@ export default function ITunesImport({ artists, onImported }: {
   async function importSong(item: iTunesResult) {
     setImportingId(item.trackId || null)
     try {
-      let artistId: string | null = null
-      const existingArtist = artists.find(a => a.name.toLowerCase() === item.artistName.toLowerCase())
-      if (existingArtist) {
-        artistId = existingArtist.id
-      } else {
-        const { data } = await (supabase.from('artists') as any).insert({ name: item.artistName, image: item.artworkUrl100 }).select().single()
-        if (data) artistId = (data as Artist).id
+      const artistNames = parseArtistNames(item.artistName)
+      const artistIds: string[] = []
+
+      for (const name of artistNames) {
+        const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
+        if (existingArtist) {
+          artistIds.push(existingArtist.id)
+          await (supabase.from('artists') as any).update({ image: item.artworkUrl100 }).eq('id', existingArtist.id)
+        } else {
+          const { data } = await (supabase.from('artists') as any).insert({ name, image: item.artworkUrl100 }).select().single()
+          if (data) artistIds.push((data as Artist).id)
+        }
       }
 
       let albumId: string | null = null
-      if (item.collectionId) {
+      if (item.collectionId && artistIds.length > 0) {
         const { data: albumData } = await supabase.from('albums').select('*').eq('title', item.collectionName || '').maybeSingle()
         if (albumData) {
           albumId = (albumData as any).id
-        } else if (artistId) {
+        } else {
           const { data } = await (supabase.from('albums') as any).insert({
             title: item.collectionName || 'Unknown Album',
-            artist_id: artistId,
-            cover: item.artworkUrl600 || item.artworkUrl100,
+            artist_id: artistIds[0],
+            cover: getHighQualityArtwork(item.artworkUrl100),
           }).select().single()
           if (data) albumId = (data as Album).id
         }
       }
 
+      const coverUrl = getHighQualityArtwork(item.artworkUrl100)
       const { data: songData } = await (supabase.from('songs') as any).insert({
         title: item.trackName || 'Unknown Track',
-        cover: item.artworkUrl600 || item.artworkUrl100,
-        artist_ids: artistId ? [artistId] : [],
+        cover: coverUrl,
+        artist_ids: artistIds,
         album_id: albumId,
       }).select().single()
 
-      if (songData && artistId) {
-        await (supabase.from('song_artists') as any).insert({
-          song_id: (songData as Song).id,
-          artist_id: artistId,
-          role: 'primary',
-          position: 0,
-        })
+      if (songData) {
+        for (const [index, artistId] of artistIds.entries()) {
+          await (supabase.from('song_artists') as any).insert({
+            song_id: (songData as Song).id,
+            artist_id: artistId,
+            role: index === 0 ? 'primary' : 'featured',
+            position: index,
+          })
+        }
       }
 
       onImported()
@@ -86,6 +94,19 @@ export default function ITunesImport({ artists, onImported }: {
       console.error('Import failed', e)
     }
     setImportingId(null)
+  }
+
+  function parseArtistNames(artistName: string): string[] {
+    const separators = [' & ', ' feat. ', ' ft. ', ' featuring ', ', ', ' x ']
+    let names = [artistName]
+    for (const sep of separators) {
+      names = names.flatMap(n => n.split(sep).map(s => s.trim()).filter(Boolean))
+    }
+    return names
+  }
+
+  function getHighQualityArtwork(url: string): string {
+    return url.replace(/100x100bb|60x60bb/, '600x600bb')
   }
 
   return (
@@ -118,7 +139,7 @@ export default function ITunesImport({ artists, onImported }: {
           {results.map((item) => (
             <div key={item.trackId} className="flex items-center gap-3 p-3 rounded-xl hover:opacity-80 transition-opacity"
               style={{ background: 'var(--am-surface-2)' }}>
-              <img src={item.artworkUrl100} alt={item.trackName} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+              <img src={getHighQualityArtwork(item.artworkUrl100)} alt={item.trackName} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-semibold truncate">{item.trackName}</p>
                 <p className="text-[11px] truncate" style={{ color: 'var(--am-text-2)' }}>
