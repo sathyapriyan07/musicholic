@@ -21,21 +21,22 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
+function safeCachePut(cache, request, response) {
+  if (response.ok) {
+    cache.put(request, response.clone())
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
-  // API requests - network first with cache fallback
+  // Skip non-GET and chrome-extension requests
+  if (request.method !== 'GET' || url.protocol === 'chrome-extension:') return
+
+  // API requests - network only, don't cache
   if (url.hostname.includes('supabase.co')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const clone = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
-          return response
-        })
-        .catch(() => caches.match(request))
-    )
+    event.respondWith(fetch(request))
     return
   }
 
@@ -45,7 +46,7 @@ self.addEventListener('fetch', (event) => {
       caches.match(request).then((cached) =>
         cached ||
         fetch(request).then((response) => {
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()))
+          caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, response))
           return response
         })
       )
@@ -58,7 +59,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()))
+          caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, response))
           return response
         })
         .catch(() => caches.match('/'))
@@ -66,14 +67,13 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Everything else - cache first, fallback to network
+  // Everything else - network first with cache fallback
   event.respondWith(
-    caches.match(request).then((cached) =>
-      cached ||
-      fetch(request).then((response) => {
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()))
+    fetch(request)
+      .then((response) => {
+        caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, response))
         return response
       })
-    )
+      .catch(() => caches.match(request))
   )
 })
