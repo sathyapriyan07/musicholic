@@ -19,6 +19,15 @@ const inputStyle = { background: 'var(--am-surface-2)', border: '1px solid var(-
 const inputFocus = (e: React.FocusEvent<any>) => (e.currentTarget.style.borderColor = 'var(--am-accent)')
 const inputBlur = (e: React.FocusEvent<any>) => (e.currentTarget.style.borderColor = 'var(--am-border)')
 
+function parseArtistNames(artistName: string): string[] {
+  const separators = [' & ', ' feat. ', ' ft. ', ' featuring ', ', ', ' x ', ' + ']
+  let names = [artistName]
+  for (const sep of separators) {
+    names = names.flatMap(n => n.split(sep).map(s => s.trim()).filter(Boolean))
+  }
+  return [...new Set(names)]
+}
+
 export default function AdminPage() {
   const { user, isAdmin, loading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -297,9 +306,43 @@ function SongForm({ artists, albums, song, onDone }: {
     setItunesSearching(false)
   }
 
-  function selectItunesArtwork(url: string) {
-    const hiRes = url.replace('/100x100', '/600x600')
+  async function selectItunesResult(r: any) {
+    const hiRes = (r.artworkUrl100 || '').replace('/100x100', '/600x600')
     setCover(hiRes)
+    if (r.trackName) setTitle(r.trackName)
+    if (r.collectionName) {
+      const existingAlbum = albums.find(a => a.title.toLowerCase() === r.collectionName.toLowerCase())
+      if (existingAlbum) {
+        setAlbumId(existingAlbum.id)
+      }
+    }
+
+    if (r.artistName) {
+      const names = parseArtistNames(r.artistName)
+      const mapped = names.map((name, i) => ({ name, index: i }))
+
+      for (const { name, index } of mapped) {
+        const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
+        if (existingArtist) {
+          setSongArtists(prev => {
+            const has = prev.some(sa => sa.artistId === existingArtist.id)
+            if (has) return prev
+            return [...prev, { artistId: existingArtist.id, role: index === 0 ? 'primary' : 'featured', position: index }]
+          })
+          if (!existingArtist.image) {
+            await (supabase.from('artists') as any).update({ image: r.artworkUrl100 || null }).eq('id', existingArtist.id)
+          }
+        } else {
+          const { data } = await (supabase.from('artists') as any).insert({
+            name,
+            image: r.artworkUrl100 || null,
+          }).select().single()
+          if (data) {
+            setSongArtists(prev => [...prev, { artistId: (data as Artist).id, role: index === 0 ? 'primary' : 'featured', position: index }])
+          }
+        }
+      }
+    }
     setItunesResults([])
     setItunesQuery('')
   }
@@ -401,19 +444,22 @@ function SongForm({ artists, albums, song, onDone }: {
         </div>
 
         {itunesResults.length > 0 && (
-          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div className="mt-3 space-y-2 max-h-72 overflow-y-auto">
             {itunesResults.map((r: any, i: number) => (
               <button
                 key={i}
                 type="button"
-                className="group relative rounded-xl overflow-hidden aspect-square transition-all hover:ring-2 hover:ring-[var(--am-accent)]"
-                onClick={() => selectItunesArtwork(r.artworkUrl100)}
-                title={`${r.trackName} by ${r.artistName}`}
+                className="w-full flex items-center gap-3 p-2 rounded-xl transition-colors hover:bg-white/5 text-left"
+                onClick={() => selectItunesResult(r)}
               >
-                <img src={r.artworkUrl100} alt={r.trackName || r.collectionName} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-[11px] font-semibold text-white text-center px-2 leading-tight">Use Cover</span>
+                <img src={r.artworkUrl100} alt={r.trackName || r.collectionName} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold truncate">{r.trackName || r.collectionName}</p>
+                  <p className="text-[11px] truncate" style={{ color: 'var(--am-text-2)' }}>
+                    {r.artistName}{r.collectionName && r.trackName ? ` · ${r.collectionName}` : ''}
+                  </p>
                 </div>
+                <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: 'var(--am-accent)' }}>Use</span>
               </button>
             ))}
           </div>
@@ -827,6 +873,55 @@ function AlbumForm({ artists, album, onDone }: { artists: Artist[]; album: Album
   const [cover, setCover] = useState(album?.cover || '')
   const [artistId, setArtistId] = useState(album?.artist_id || '')
   const [loading, setLoading] = useState(false)
+  const [itunesQuery, setItunesQuery] = useState('')
+  const [itunesResults, setItunesResults] = useState<any[]>([])
+  const [itunesSearching, setItunesSearching] = useState(false)
+
+  async function searchItunes() {
+    if (!itunesQuery.trim()) return
+    setItunesSearching(true)
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(itunesQuery.trim())}&entity=album&limit=10`)
+      const data = await res.json()
+      setItunesResults(data.results || [])
+    } catch {
+      setItunesResults([])
+    }
+    setItunesSearching(false)
+  }
+
+  async function selectItunesResult(r: any) {
+    const hiRes = (r.artworkUrl100 || '').replace('/100x100', '/600x600')
+    setCover(hiRes)
+    if (r.collectionName) setTitle(r.collectionName)
+
+    if (r.artistName) {
+      const names = parseArtistNames(r.artistName)
+      const savedIds: string[] = []
+
+      for (const name of names) {
+        const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
+        if (existingArtist) {
+          savedIds.push(existingArtist.id)
+          if (!existingArtist.image) {
+            await (supabase.from('artists') as any).update({ image: r.artworkUrl100 || null }).eq('id', existingArtist.id)
+          }
+        } else {
+          const { data } = await (supabase.from('artists') as any).insert({
+            name,
+            image: r.artworkUrl100 || null,
+          }).select().single()
+          if (data) savedIds.push((data as Artist).id)
+        }
+      }
+
+      if (savedIds.length > 0) {
+        setArtistId(savedIds[0])
+      }
+    }
+    setItunesResults([])
+    setItunesQuery('')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -849,6 +944,61 @@ function AlbumForm({ artists, album, onDone }: { artists: Artist[]; album: Album
         <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Title</label>
         <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Album title" />
       </div>
+
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Search iTunes</label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={itunesQuery}
+            onChange={(e) => setItunesQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), searchItunes())}
+            className="flex-1 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
+            style={inputStyle}
+            onFocus={inputFocus}
+            onBlur={inputBlur}
+            placeholder="Album name..."
+          />
+          <button
+            type="button"
+            onClick={searchItunes}
+            disabled={itunesSearching}
+            className="px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-opacity hover:opacity-80 disabled:opacity-50"
+            style={{ background: 'var(--am-accent)', color: '#fff' }}
+          >
+            <Search className="w-4 h-4" />
+          </button>
+        </div>
+
+        {itunesResults.length > 0 && (
+          <div className="mt-3 space-y-2 max-h-72 overflow-y-auto">
+            {itunesResults.map((r: any, i: number) => (
+              <button
+                key={i}
+                type="button"
+                className="w-full flex items-center gap-3 p-2 rounded-xl transition-colors hover:bg-white/5 text-left"
+                onClick={() => selectItunesResult(r)}
+              >
+                <img src={r.artworkUrl100} alt={r.collectionName} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold truncate">{r.collectionName}</p>
+                  <p className="text-[11px] truncate" style={{ color: 'var(--am-text-2)' }}>{r.artistName}</p>
+                </div>
+                <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: 'var(--am-accent)' }}>Use</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {itunesResults.length === 0 && itunesQuery.length > 0 && !itunesSearching && (
+          <p className="mt-2 text-[12px] text-center" style={{ color: 'var(--am-text-3)' }}>No results found</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Cover URL</label>
+        <input type="url" value={cover} onChange={(e) => setCover(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
+      </div>
+
       <div>
         <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Artist</label>
         <SearchableSelect
@@ -858,10 +1008,6 @@ function AlbumForm({ artists, album, onDone }: { artists: Artist[]; album: Album
           placeholder="Select artist"
           label="Artist"
         />
-      </div>
-      <div>
-        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Cover URL</label>
-        <input type="url" value={cover} onChange={(e) => setCover(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
       </div>
       <div className="flex gap-3 pt-1">
         <button type="submit" disabled={loading} className="text-white font-semibold px-6 py-2 rounded-full text-[13px] hover:opacity-90 disabled:opacity-50"

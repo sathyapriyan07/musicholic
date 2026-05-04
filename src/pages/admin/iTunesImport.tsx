@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { Artist, Album, Song } from '@/types'
+import type { Song, Album } from '@/types'
 
 interface iTunesResult {
   trackId?: number
@@ -42,15 +42,6 @@ export default function ITunesImport({ onImported }: {
     setLoading(false)
   }
 
-  function parseArtistNames(artistName: string): string[] {
-    const separators = [' & ', ' feat. ', ' ft. ', ' featuring ', ', ', ' x ']
-    let names = [artistName]
-    for (const sep of separators) {
-      names = names.flatMap(n => n.split(sep).map(s => s.trim()).filter(Boolean))
-    }
-    return names
-  }
-
   function getHighQualityArtwork(url: string): string {
     return url.replace(/100x100bb|60x60bb/, '600x600bb')
   }
@@ -58,54 +49,18 @@ export default function ITunesImport({ onImported }: {
   async function handleImportSong(item: iTunesResult) {
     setImportingId(item.trackId || null)
     try {
-      const artistNames = parseArtistNames(item.artistName)
-      const artistIds: string[] = []
-
-      for (const name of artistNames) {
-        const { data: existingArtist } = await (supabase.from('artists') as any)
-          .select('id, image').ilike('name', name).maybeSingle()
-        if (existingArtist) {
-          artistIds.push(existingArtist.id)
-          if (!existingArtist.image) {
-            await (supabase.from('artists') as any).update({ image: item.artworkUrl100 }).eq('id', existingArtist.id)
-          }
-        } else {
-          const { data } = await (supabase.from('artists') as any).insert({ name, image: item.artworkUrl100 }).select().single()
-          if (data) artistIds.push((data as Artist).id)
-        }
-      }
-
-      let albumId: string | null = null
-      if (item.collectionId && artistIds.length > 0) {
-        const { data: albumData } = await supabase.from('albums').select('*').eq('title', item.collectionName || '').maybeSingle()
-        if (albumData) {
-          albumId = (albumData as any).id
-        } else {
-          const { data } = await (supabase.from('albums') as any).insert({
-            title: item.collectionName || 'Unknown Album',
-            artist_id: artistIds[0],
-            cover: getHighQualityArtwork(item.artworkUrl100),
-          }).select().single()
-          if (data) albumId = (data as Album).id
-        }
-      }
-
       const coverUrl = getHighQualityArtwork(item.artworkUrl100)
       const { data: songData } = await (supabase.from('songs') as any).insert({
         title: item.trackName || 'Unknown Track',
         cover: coverUrl,
-        artist_ids: artistIds,
-        album_id: albumId,
+        artist_ids: [],
+        album_id: null,
       }).select().single()
 
       if (songData) {
-        for (const [index, artistId] of artistIds.entries()) {
-          await (supabase.from('song_artists') as any).insert({
-            song_id: (songData as Song).id,
-            artist_id: artistId,
-            role: index === 0 ? 'primary' : 'featured',
-            position: index,
-          })
+        const { data: albumCheck } = await supabase.from('albums').select('id').ilike('title', item.collectionName || '').maybeSingle()
+        if (albumCheck) {
+          await (supabase.from('songs') as any).update({ album_id: (albumCheck as any).id }).eq('id', (songData as Song).id)
         }
       }
 
@@ -121,76 +76,36 @@ export default function ITunesImport({ onImported }: {
     setImportingId(item.collectionId)
     try {
       const collectionId = item.collectionId
-      const artistNames = parseArtistNames(item.artistName)
-      
-      // First, upsert all unique artists from the album
-      const albumArtistIds: string[] = []
-      for (const name of artistNames) {
-        const { data: existingArtist } = await (supabase.from('artists') as any)
-          .select('id, image').ilike('name', name).maybeSingle()
-        if (existingArtist) {
-          albumArtistIds.push(existingArtist.id)
-          if (!existingArtist.image) {
-            await (supabase.from('artists') as any).update({ image: item.artworkUrl100 }).eq('id', existingArtist.id)
-          }
-        } else {
-          const { data } = await (supabase.from('artists') as any).insert({ name, image: item.artworkUrl100 }).select().single()
-          if (data) albumArtistIds.push((data as Artist).id)
-        }
-      }
+      const coverUrl = getHighQualityArtwork(item.artworkUrl100)
 
-      // Create/get album
       let albumId: string | null = null
-      const { data: existingAlbum } = await supabase.from('albums').select('*').eq('title', item.collectionName || '').maybeSingle()
+      const { data: existingAlbum } = await supabase.from('albums').select('*').ilike('title', item.collectionName || '').maybeSingle()
       if (existingAlbum) {
         albumId = (existingAlbum as any).id
-      } else if (albumArtistIds.length > 0) {
+        await (supabase.from('albums') as any).update({ cover: coverUrl }).eq('id', albumId)
+      } else {
         const { data } = await (supabase.from('albums') as any).insert({
           title: item.collectionName || 'Unknown Album',
-          artist_id: albumArtistIds[0],
-          cover: getHighQualityArtwork(item.artworkUrl100),
+          artist_id: null,
+          cover: coverUrl,
         }).select().single()
         if (data) albumId = (data as Album).id
       }
 
-      // Fetch all tracks from the album
       const res = await fetch(`https://itunes.apple.com/lookup?id=${collectionId}&entity=song`)
       const data = await res.json()
       const songs = data.results?.filter((r: any) => r.wrapperType === 'track') || []
 
-      // Import each song
       for (const track of songs) {
-        const existingSong = await supabase.from('songs').select('id').eq('title', track.trackName).maybeSingle()
-        if (existingSong.data) continue;
+        const { data: existingSong } = await supabase.from('songs').select('id').ilike('title', track.trackName || '').maybeSingle()
+        if (existingSong) continue
 
-        // Get artists for this specific track
-        const trackArtistNames = parseArtistNames(track.artistName || item.artistName)
-        const trackArtistIds: string[] = []
-        for (const name of trackArtistNames) {
-          const { data: existing } = await (supabase.from('artists') as any)
-            .select('id').ilike('name', name).maybeSingle()
-          if (existing) trackArtistIds.push(existing.id)
-        }
-
-        const finalArtistIds = trackArtistIds.length > 0 ? trackArtistIds : albumArtistIds
-
-        const { data: songData } = await (supabase.from('songs') as any).insert({
-          title: track.trackName,
+        await (supabase.from('songs') as any).insert({
+          title: track.trackName || 'Unknown Track',
           cover: getHighQualityArtwork(track.artworkUrl100 || item.artworkUrl100),
-          artist_ids: finalArtistIds,
+          artist_ids: [],
           album_id: albumId,
-        }).select().single()
-
-        if (songData) {
-          for (const [index, artistId] of finalArtistIds.entries()) {
-            await (supabase.from('song_artists') as any).insert({
-              song_id: (songData as Song).id,
-              artist_id: artistId,
-              role: index === 0 ? 'primary' : 'featured',
-              position: index,
-            })
-          }
-        }
+        })
       }
 
       onImported()
@@ -233,7 +148,7 @@ export default function ITunesImport({ onImported }: {
   return (
     <div className="rounded-2xl p-5" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
       <h3 className="text-[17px] font-bold mb-4">iTunes Import</h3>
-      <p className="text-[12px] mb-4" style={{ color: 'var(--am-text-2)' }}>Search and import songs or albums from iTunes. Cover images are imported as URLs (not uploaded). Preview URLs are not imported.</p>
+      <p className="text-[12px] mb-4" style={{ color: 'var(--am-text-2)' }}>Search and import songs or albums from iTunes. Cover images are imported as URLs. Artists must be assigned manually in the Songs/Albums tab.</p>
       
       <div className="flex gap-2 mb-4">
         <button

@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { Home, Compass, Library, Search } from 'lucide-react'
+import { Home, Compass, Library, Search, Disc3 } from 'lucide-react'
 
 const navItems = [
   { icon: Home, label: 'Listen Now', href: '/' },
   { icon: Compass, label: 'Browse', href: '/browse' },
+  { icon: Disc3, label: 'Albums', href: '/albums' },
   { icon: Search, label: 'Search', href: '/search' },
   { icon: Library, label: 'Library', href: '/playlists' },
 ]
@@ -25,7 +26,7 @@ export default function BottomNav() {
         borderTop: '1px solid var(--am-border)',
       }}
     >
-      <div className="flex items-center justify-around h-[56px] max-w-sm mx-auto px-2">
+      <div className="flex items-center justify-around h-[56px] max-w-md mx-auto px-2">
         {navItems.map((item) => {
           const active = isActive(item.href)
           return (

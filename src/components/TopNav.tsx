@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 const navLinks = [
   { label: 'Listen Now', href: '/' },
   { label: 'Browse', href: '/browse' },
+  { label: 'Albums', href: '/albums' },
   { label: 'Library', href: '/playlists' },
 ]
 
@@ -207,6 +208,7 @@ export default function TopNav() {
               {[
                 { label: 'Listen Now', href: '/' },
                 { label: 'Browse', href: '/browse' },
+                { label: 'Albums', href: '/albums' },
                 { label: 'Search', href: '/search' },
                 { label: 'Library', href: '/playlists' },
               ].map((item) => (

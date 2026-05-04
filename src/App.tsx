@@ -9,6 +9,7 @@ import AlbumPage from '@/pages/AlbumPage'
 import SearchPage from '@/pages/SearchPage'
 import BrowsePage from '@/pages/BrowsePage'
 import PlaylistsPage from '@/pages/PlaylistsPage'
+import AlbumsPage from '@/pages/AlbumsPage'
 import LoginPage from '@/pages/LoginPage'
 import AdminPage from '@/pages/admin/AdminPage'
 
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/album/:id" element={<AlbumPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/browse" element={<BrowsePage />} />
+            <Route path="/albums" element={<AlbumsPage />} />
             <Route path="/playlists" element={<PlaylistsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin/*" element={<AdminPage />} />
