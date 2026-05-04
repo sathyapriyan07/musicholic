@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import { Plus, Trash2, Edit2, Music2, Upload, X } from 'lucide-react'
+import { Plus, Trash2, Edit2, Music2, Upload, X, Search } from 'lucide-react'
 import type { Song, Artist, Album, PlatformKey, ArtistPlatformKey } from '@/types'
 import { PLATFORM_CONFIG, ARTIST_PLATFORM_CONFIG } from '@/types'
 import { cn } from '@/lib/utils'
@@ -280,6 +280,29 @@ function SongForm({ artists, albums, song, onDone }: {
     (song?.links || []).map((l: any) => ({ platform: l.platform as PlatformKey, url: l.url }))
   )
   const [loading, setLoading] = useState(false)
+  const [itunesQuery, setItunesQuery] = useState('')
+  const [itunesResults, setItunesResults] = useState<any[]>([])
+  const [itunesSearching, setItunesSearching] = useState(false)
+
+  async function searchItunes() {
+    if (!itunesQuery.trim()) return
+    setItunesSearching(true)
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(itunesQuery.trim())}&media=music&limit=10`)
+      const data = await res.json()
+      setItunesResults(data.results || [])
+    } catch {
+      setItunesResults([])
+    }
+    setItunesSearching(false)
+  }
+
+  function selectItunesArtwork(url: string) {
+    const hiRes = url.replace('/100x100', '/600x600')
+    setCover(hiRes)
+    setItunesResults([])
+    setItunesQuery('')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -351,6 +374,55 @@ function SongForm({ artists, albums, song, onDone }: {
         <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Cover URL</label>
         <input type="url" value={cover} onChange={(e) => setCover(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
       </div>
+
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Search iTunes for Cover</label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={itunesQuery}
+            onChange={(e) => setItunesQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), searchItunes())}
+            className="flex-1 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
+            style={inputStyle}
+            onFocus={inputFocus}
+            onBlur={inputBlur}
+            placeholder="Song or album name..."
+          />
+          <button
+            type="button"
+            onClick={searchItunes}
+            disabled={itunesSearching}
+            className="px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-opacity hover:opacity-80 disabled:opacity-50"
+            style={{ background: 'var(--am-accent)', color: '#fff' }}
+          >
+            <Search className="w-4 h-4" />
+          </button>
+        </div>
+
+        {itunesResults.length > 0 && (
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {itunesResults.map((r: any, i: number) => (
+              <button
+                key={i}
+                type="button"
+                className="group relative rounded-xl overflow-hidden aspect-square transition-all hover:ring-2 hover:ring-[var(--am-accent)]"
+                onClick={() => selectItunesArtwork(r.artworkUrl100)}
+                title={`${r.trackName} by ${r.artistName}`}
+              >
+                <img src={r.artworkUrl100} alt={r.trackName || r.collectionName} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-[11px] font-semibold text-white text-center px-2 leading-tight">Use Cover</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        {itunesResults.length === 0 && itunesQuery.length > 0 && !itunesSearching && (
+          <p className="mt-2 text-[12px] text-center" style={{ color: 'var(--am-text-3)' }}>No results found</p>
+        )}
+      </div>
+
       <div>
         <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>YouTube URL</label>
         <input type="url" value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://www.youtube.com/watch?v=..." />
