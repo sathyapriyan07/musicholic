@@ -10,10 +10,10 @@ import { cn } from '@/lib/utils'
 import { getYouTubeThumbnail } from '@/lib/utils'
 import ITunesImport from './iTunesImport'
 import BulkEdit from './BulkEdit'
+import SearchableSelect from '@/components/SearchableSelect'
 
 type AdminTab = 'songs' | 'artists' | 'albums' | 'itunes'
 
-// Shared input class helper
 const inputClass = 'w-full rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]'
 const inputStyle = { background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }
 const inputFocus = (e: React.FocusEvent<any>) => (e.currentTarget.style.borderColor = 'var(--am-accent)')
@@ -27,12 +27,12 @@ export default function AdminPage() {
   const [artists, setArtists] = useState<Artist[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [_loading, setLoading] = useState(true)
-  const [editingSong, setEditingSong] = useState<Song | null>(null)
-  const [editingArtist, setEditingArtist] = useState<Artist | null>(null)
-  const [editingAlbum, setEditingAlbum] = useState<Album | null>(null)
-  const [showSongForm, setShowSongForm] = useState(false)
-  const [showArtistForm, setShowArtistForm] = useState(false)
-  const [showAlbumForm, setShowAlbumForm] = useState(false)
+  const [editingSongId, setEditingSongId] = useState<string | null>(null)
+  const [editingArtistId, setEditingArtistId] = useState<string | null>(null)
+  const [editingAlbumId, setEditingAlbumId] = useState<string | null>(null)
+  const [showNewSongForm, setShowNewSongForm] = useState(false)
+  const [showNewArtistForm, setShowNewArtistForm] = useState(false)
+  const [showNewAlbumForm, setShowNewAlbumForm] = useState(false)
   const [songSearch, setSongSearch] = useState('')
   const [artistSearch, setArtistSearch] = useState('')
   const [albumSearch, setAlbumSearch] = useState('')
@@ -113,6 +113,16 @@ export default function AdminPage() {
     { key: 'itunes', label: 'iTunes Import' },
   ]
 
+  const handleTabChange = (tab: AdminTab) => {
+    setActiveTab(tab)
+    setShowNewSongForm(false)
+    setShowNewArtistForm(false)
+    setShowNewAlbumForm(false)
+    setEditingSongId(null)
+    setEditingArtistId(null)
+    setEditingAlbumId(null)
+  }
+
   return (
     <div className="py-8 px-5 lg:px-8 max-w-4xl">
       <h1 className="text-[32px] font-bold tracking-tight mb-8">Admin</h1>
@@ -122,7 +132,7 @@ export default function AdminPage() {
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => { setActiveTab(tab.key); setShowSongForm(false); setShowArtistForm(false); setShowAlbumForm(false) }}
+            onClick={() => handleTabChange(tab.key)}
             className={cn('px-5 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all')}
             style={activeTab === tab.key ? { background: 'var(--am-accent)', color: '#fff' } : { background: 'var(--am-surface-2)', color: 'var(--am-text-2)' }}
           >
@@ -132,13 +142,22 @@ export default function AdminPage() {
       </div>
 
       {activeTab === 'songs' && (
-        <SongsTab songs={filteredSongs} artists={artists} albums={albums} showForm={showSongForm} setShowForm={setShowSongForm} editingSong={editingSong} setEditingSong={setEditingSong} onSaved={fetchData} search={songSearch} setSearch={setSongSearch} />
+        <SongsTab songs={filteredSongs} artists={artists} albums={albums}
+          editingSongId={editingSongId} setEditingSongId={setEditingSongId}
+          showNewForm={showNewSongForm} setShowNewForm={setShowNewSongForm}
+          onSaved={fetchData} search={songSearch} setSearch={setSongSearch} />
       )}
       {activeTab === 'artists' && (
-        <ArtistsTab artists={filteredArtists} showForm={showArtistForm} setShowForm={setShowArtistForm} editingArtist={editingArtist} setEditingArtist={setEditingArtist} onSaved={fetchData} search={artistSearch} setSearch={setArtistSearch} />
+        <ArtistsTab artists={filteredArtists}
+          editingArtistId={editingArtistId} setEditingArtistId={setEditingArtistId}
+          showNewForm={showNewArtistForm} setShowNewForm={setShowNewArtistForm}
+          onSaved={fetchData} search={artistSearch} setSearch={setArtistSearch} />
       )}
       {activeTab === 'albums' && (
-        <AlbumsTab albums={filteredAlbums} artists={artists} showForm={showAlbumForm} setShowForm={setShowAlbumForm} editingAlbum={editingAlbum} setEditingAlbum={setEditingAlbum} onSaved={fetchData} search={albumSearch} setSearch={setAlbumSearch} />
+        <AlbumsTab albums={filteredAlbums} artists={artists}
+          editingAlbumId={editingAlbumId} setEditingAlbumId={setEditingAlbumId}
+          showNewForm={showNewAlbumForm} setShowNewForm={setShowNewAlbumForm}
+          onSaved={fetchData} search={albumSearch} setSearch={setAlbumSearch} />
       )}
       {activeTab === 'itunes' && (
         <ITunesImport onImported={fetchData} />
@@ -154,44 +173,113 @@ export default function AdminPage() {
   )
 }
 
-function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, setEditingSong, onSaved, search, setSearch }: {
-  songs: Song[]; artists: Artist[]; albums: Album[]; showForm: boolean; setShowForm: (v: boolean) => void;
-  editingSong: Song | null; setEditingSong: (s: Song | null) => void; onSaved: () => void;
-  search: string; setSearch: (v: string) => void
+function SongsTab({ songs, artists, albums, editingSongId, setEditingSongId, showNewForm, setShowNewForm, onSaved, search, setSearch }: {
+  songs: Song[]; artists: Artist[]; albums: Album[];
+  editingSongId: string | null; setEditingSongId: (id: string | null) => void;
+  showNewForm: boolean; setShowNewForm: (v: boolean) => void;
+  onSaved: () => void; search: string; setSearch: (v: string) => void
 }) {
-  const [title, setTitle] = useState('')
-  const [cover, setCover] = useState('')
-  const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [lyrics, setLyrics] = useState('')
-  const [songArtists, setSongArtists] = useState<{ artistId: string; role: string; position: number }[]>([{ artistId: '', role: 'primary', position: 0 }])
-  const [albumId, setAlbumId] = useState('')
-  const [links, setLinks] = useState<{ platform: PlatformKey; url: string }[]>([])
-  const [loading, setLoading] = useState(false)
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-[20px] font-bold">Songs <span className="text-[var(--am-text-3)] font-normal text-[16px]">({songs.length})</span></h2>
+        <button onClick={() => { setShowNewForm(!showNewForm); setEditingSongId(null) }} className="flex items-center gap-1.5 text-white font-semibold px-4 py-2 rounded-full text-[13px] hover:opacity-90"
+          style={{ background: 'var(--am-accent)' }}>
+          <Plus className="w-4 h-4" /> {showNewForm ? 'Close' : 'Add Song'}
+        </button>
+      </div>
 
-  useEffect(() => {
-    if (editingSong) {
-      setTitle(editingSong.title); setCover(editingSong.cover || ''); setYoutubeUrl(editingSong.youtube_embed_url || ''); setLyrics(editingSong.lyrics || '')
-      if (editingSong.song_artists && editingSong.song_artists.length > 0) {
-        setSongArtists(editingSong.song_artists.map((sa: any) => ({
-          artistId: sa.artist_id,
-          role: sa.role || 'featured',
-          position: sa.position || 0
-        })))
-      } else {
-        setSongArtists(editingSong.artist_ids?.map((id, i) => ({ artistId: id, role: i === 0 ? 'primary' : 'featured', position: i })) || [{ artistId: '', role: 'primary', position: 0 }])
-      }
-      setAlbumId(editingSong.album_id || '')
-      setLinks((editingSong.links || []).map((l: any) => ({ platform: l.platform as PlatformKey, url: l.url })))
-      setShowForm(true)
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search songs..."
+        className="w-full mb-4 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
+        style={inputStyle}
+        onFocus={inputFocus}
+        onBlur={inputBlur}
+      />
+
+      {showNewForm && (
+        <div className="mb-6">
+          <SongForm artists={artists} albums={albums} song={null}
+            onDone={() => { setShowNewForm(false); onSaved() }} />
+        </div>
+      )}
+
+      <div>
+        {songs.map((song, i) => {
+          const isEditing = editingSongId === song.id
+          const thumbnail = song.cover || getYouTubeThumbnail(song.youtube_embed_url)
+          return (
+            <div key={song.id}>
+              <div className="flex items-center gap-3 py-3 group"
+                style={i < songs.length - 1 && !isEditing ? { borderBottom: '1px solid var(--am-divider)' } : {}}>
+                {thumbnail ? (
+                  <img src={thumbnail} alt={song.title} className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
+                    <Music2 className="w-5 h-5" style={{ color: 'var(--am-text-3)' }} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-semibold truncate">{song.title}</p>
+                  <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--am-text-2)' }}>
+                    {song.song_artists && song.song_artists.length > 0
+                      ? song.song_artists.map((sa: any) => `${sa.artist?.name || 'Unknown'}${sa.role !== 'primary' ? ` (${sa.role})` : ''}`).join(', ')
+                      : (song.artists as Artist[] | undefined)?.map(a => a.name).join(', ') || 'No artist'}
+                    {(() => { const a = song as any; return a.album?.title ? ` · ${a.album.title}` : null })()}
+                  </p>
+                </div>
+                {(song.links as any)?.length > 0 && (
+                  <span className="text-[11px] tabular-nums px-2 py-0.5 rounded-full" style={{ color: 'var(--am-text-3)', background: 'var(--am-surface-2)' }}>
+                    {(song.links as any).length} links
+                  </span>
+                )}
+                <button onClick={() => { setEditingSongId(isEditing ? null : song.id); setShowNewForm(false) }} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--am-text-2)' }}>
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button onClick={() => { deleteSong(song.id); if (isEditing) setEditingSongId(null) }} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              {isEditing && (
+                <div className="mb-4">
+                  <SongForm artists={artists} albums={albums} song={song}
+                    onDone={() => { setEditingSongId(null); onSaved() }} />
+                </div>
+              )}
+            </div>
+          )
+        })}
+        {songs.length === 0 && <p className="text-center py-10 text-[14px]" style={{ color: 'var(--am-text-2)' }}>No songs yet</p>}
+      </div>
+    </div>
+  )
+}
+
+function SongForm({ artists, albums, song, onDone }: {
+  artists: Artist[]; albums: Album[]; song: Song | null; onDone: () => void
+}) {
+  const [title, setTitle] = useState(song?.title || '')
+  const [cover, setCover] = useState(song?.cover || '')
+  const [youtubeUrl, setYoutubeUrl] = useState(song?.youtube_embed_url || '')
+  const [lyrics, setLyrics] = useState(song?.lyrics || '')
+  const [songArtists, setSongArtists] = useState<{ artistId: string; role: string; position: number }[]>(() => {
+    if (song?.song_artists && song.song_artists.length > 0) {
+      return song.song_artists.map((sa: any) => ({
+        artistId: sa.artist_id,
+        role: sa.role || 'featured',
+        position: sa.position || 0
+      }))
     }
-  }, [editingSong])
-
-  function resetForm() {
-    setTitle(''); setCover(''); setYoutubeUrl(''); setLyrics('')
-    setSongArtists([{ artistId: '', role: 'primary', position: 0 }])
-    setAlbumId(''); setLinks([])
-    setEditingSong(null); setShowForm(false)
-  }
+    return song?.artist_ids?.map((id, i) => ({ artistId: id, role: i === 0 ? 'primary' : 'featured', position: i })) || [{ artistId: '', role: 'primary', position: 0 }]
+  })
+  const [albumId, setAlbumId] = useState(song?.album_id || '')
+  const [links, setLinks] = useState<{ platform: PlatformKey; url: string }[]>(() =>
+    (song?.links || []).map((l: any) => ({ platform: l.platform as PlatformKey, url: l.url }))
+  )
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -200,21 +288,21 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
 
     const artistIds = songArtists.filter(sa => sa.artistId).map(sa => sa.artistId)
 
-    if (editingSong) {
+    if (song) {
       await (supabase.from('songs') as any).update({
         title: title.trim(), cover: cover.trim() || null, youtube_embed_url: youtubeUrl.trim() || null,
         artist_ids: artistIds, album_id: albumId || null, lyrics: lyrics.trim() || null
-      }).eq('id', editingSong.id)
+      }).eq('id', song.id)
 
-      await supabase.from('song_artists').delete().eq('song_id', editingSong.id)
+      await supabase.from('song_artists').delete().eq('song_id', song.id)
       for (const [index, sa] of songArtists.filter(sa => sa.artistId).entries()) {
         await (supabase.from('song_artists') as any).insert({
-          song_id: editingSong.id, artist_id: sa.artistId, role: sa.role, position: index
+          song_id: song.id, artist_id: sa.artistId, role: sa.role, position: index
         })
       }
-      if (editingSong.links) await supabase.from('links').delete().eq('song_id', editingSong.id)
+      if (song.links) await supabase.from('links').delete().eq('song_id', song.id)
       for (const link of links) {
-        if (link.url.trim()) await (supabase.from('links') as any).insert({ song_id: editingSong.id, platform: link.platform, url: link.url.trim() })
+        if (link.url.trim()) await (supabase.from('links') as any).insert({ song_id: song.id, platform: link.platform, url: link.url.trim() })
       }
     } else {
       const { data } = await (supabase.from('songs') as any).insert({
@@ -232,14 +320,7 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
         }
       }
     }
-    resetForm(); onSaved(); setLoading(false)
-  }
-
-  async function deleteSong(id: string) {
-    await supabase.from('song_artists').delete().eq('song_id', id)
-    await supabase.from('links').delete().eq('song_id', id)
-    await supabase.from('songs').delete().eq('id', id)
-    onSaved()
+    onDone(); setLoading(false)
   }
 
   function addArtist() {
@@ -256,13 +337,127 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
     setSongArtists(updated)
   }
 
+  const artistOptions: { value: string; label: string }[] = artists.map(a => ({ value: a.id, label: a.name }))
+  const albumOptions: { value: string; label: string }[] = albums.map(a => ({ value: a.id, label: a.title }))
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
+      <h3 className="text-[17px] font-bold">{song ? 'Edit Song' : 'New Song'}</h3>
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Title</label>
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Song title" />
+      </div>
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Cover URL</label>
+        <input type="url" value={cover} onChange={(e) => setCover(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
+      </div>
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>YouTube URL</label>
+        <input type="url" value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://www.youtube.com/watch?v=..." />
+      </div>
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Lyrics</label>
+        <textarea value={lyrics} onChange={(e) => setLyrics(e.target.value)} rows={4}
+          className={`${inputClass} resize-none`} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
+          placeholder="Enter song lyrics..." />
+      </div>
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Artists & Roles</label>
+          <button type="button" onClick={addArtist}
+            className="text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
+            <Plus className="w-3 h-3" /> Add Artist
+          </button>
+        </div>
+        {songArtists.map((sa, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <div className="flex-1">
+              <SearchableSelect
+                value={sa.artistId}
+                onChange={(v) => updateArtist(i, 'artistId', v)}
+                options={artistOptions}
+                placeholder="Select artist"
+                label="Artist"
+              />
+            </div>
+            <select value={sa.role} onChange={(e) => updateArtist(i, 'role', e.target.value)}
+              className="rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
+              <option value="primary">Primary</option>
+              <option value="featured">Featured</option>
+              <option value="producer">Producer</option>
+              <option value="composer">Composer</option>
+              <option value="lyricist">Lyricist</option>
+            </select>
+            {songArtists.length > 1 && (
+              <button type="button" onClick={() => removeArtist(i)} className="p-2 text-red-400 hover:text-red-300">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Album</label>
+        <SearchableSelect
+          value={albumId}
+          onChange={setAlbumId}
+          options={[{ value: '', label: 'No album' }, ...albumOptions]}
+          placeholder="No album"
+          label="Album"
+        />
+      </div>
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Streaming Links</label>
+          <button type="button" onClick={() => setLinks([...links, { platform: 'spotify', url: '' }])}
+            className="text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
+            <Plus className="w-3 h-3" /> Add
+          </button>
+        </div>
+        {links.map((link, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <select value={link.platform} onChange={(e) => { const u = [...links]; u[i] = { ...u[i], platform: e.target.value as PlatformKey }; setLinks(u) }}
+              className="rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
+              {Object.entries(PLATFORM_CONFIG).map(([key, config]) => <option key={key} value={key}>{config.name}</option>)}
+            </select>
+            <input type="url" value={link.url} onChange={(e) => { const u = [...links]; u[i] = { ...u[i], url: e.target.value }; setLinks(u) }}
+              className="flex-1 rounded-xl px-4 py-2 text-[13px] focus:outline-none" style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
+            <button type="button" onClick={() => setLinks(links.filter((_, j) => j !== i))} className="p-2 text-red-400 hover:text-red-300">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-3 pt-1">
+        <button type="submit" disabled={loading} className="text-white font-semibold px-6 py-2 rounded-full text-[13px] hover:opacity-90 disabled:opacity-50"
+          style={{ background: 'var(--am-accent)' }}>
+          {loading ? 'Saving…' : song ? 'Update' : 'Create'}
+        </button>
+        <button type="button" onClick={onDone} className="text-[13px] font-medium hover:opacity-70 px-3" style={{ color: 'var(--am-text-2)' }}>Cancel</button>
+      </div>
+    </form>
+  )
+}
+
+async function deleteSong(id: string) {
+  await supabase.from('song_artists').delete().eq('song_id', id)
+  await supabase.from('links').delete().eq('song_id', id)
+  await supabase.from('songs').delete().eq('id', id)
+}
+
+function ArtistsTab({ artists, editingArtistId, setEditingArtistId, showNewForm, setShowNewForm, onSaved, search, setSearch }: {
+  artists: Artist[];
+  editingArtistId: string | null; setEditingArtistId: (id: string | null) => void;
+  showNewForm: boolean; setShowNewForm: (v: boolean) => void;
+  onSaved: () => void; search: string; setSearch: (v: string) => void
+}) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[20px] font-bold">Songs <span className="text-[var(--am-text-3)] font-normal text-[16px]">({songs.length})</span></h2>
-        <button onClick={() => { resetForm(); setShowForm(true) }} className="flex items-center gap-1.5 text-white font-semibold px-4 py-2 rounded-full text-[13px] hover:opacity-90"
+        <h2 className="text-[20px] font-bold">Artists <span className="text-[var(--am-text-3)] font-normal text-[16px]">({artists.length})</span></h2>
+        <button onClick={() => { setShowNewForm(!showNewForm); setEditingArtistId(null) }} className="flex items-center gap-1.5 text-white font-semibold px-4 py-2 rounded-full text-[13px] hover:opacity-90"
           style={{ background: 'var(--am-accent)' }}>
-          <Plus className="w-4 h-4" /> Add Song
+          <Plus className="w-4 h-4" /> {showNewForm ? 'Close' : 'Add Artist'}
         </button>
       </div>
 
@@ -270,177 +465,73 @@ function SongsTab({ songs, artists, albums, showForm, setShowForm, editingSong, 
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search songs..."
+        placeholder="Search artists..."
         className="w-full mb-4 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
-        style={{ background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--am-accent)')}
-        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--am-border)')}
+        style={inputStyle}
+        onFocus={inputFocus}
+        onBlur={inputBlur}
       />
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="rounded-2xl p-5 mb-8 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
-          <h3 className="text-[17px] font-bold">{editingSong ? 'Edit Song' : 'New Song'}</h3>
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Title</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Song title" />
-          </div>
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Cover URL</label>
-            <input type="url" value={cover} onChange={(e) => setCover(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
-          </div>
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>YouTube URL</label>
-            <input type="url" value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://www.youtube.com/watch?v=..." />
-          </div>
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Lyrics</label>
-            <textarea value={lyrics} onChange={(e) => setLyrics(e.target.value)} rows={6}
-              className={`${inputClass} resize-none`} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
-              placeholder="Enter song lyrics..." />
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Artists & Roles</label>
-              <button type="button" onClick={addArtist}
-                className="text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
-                <Plus className="w-3 h-3" /> Add Artist
-              </button>
-            </div>
-            {songArtists.map((sa, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <select value={sa.artistId} onChange={(e) => updateArtist(i, 'artistId', e.target.value)}
-                  className="flex-1 rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
-                  <option value="">Select artist</option>
-                  {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
-                <select value={sa.role} onChange={(e) => updateArtist(i, 'role', e.target.value)}
-                  className="rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
-                  <option value="primary">Primary</option>
-                  <option value="featured">Featured</option>
-                  <option value="producer">Producer</option>
-                  <option value="composer">Composer</option>
-                  <option value="lyricist">Lyricist</option>
-                </select>
-                {songArtists.length > 1 && (
-                  <button type="button" onClick={() => removeArtist(i)} className="p-2 text-red-400 hover:text-red-300">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Album</label>
-            <select value={albumId} onChange={(e) => setAlbumId(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}>
-              <option value="">No album</option>
-              {albums.map(album => <option key={album.id} value={album.id}>{album.title}</option>)}
-            </select>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Streaming Links</label>
-              <button type="button" onClick={() => setLinks([...links, { platform: 'spotify', url: '' }])}
-                className="text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
-                <Plus className="w-3 h-3" /> Add
-              </button>
-            </div>
-            {links.map((link, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <select value={link.platform} onChange={(e) => { const u = [...links]; u[i] = { ...u[i], platform: e.target.value as PlatformKey }; setLinks(u) }}
-                  className="rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
-                  {Object.entries(PLATFORM_CONFIG).map(([key, config]) => <option key={key} value={key}>{config.name}</option>)}
-                </select>
-                <input type="url" value={link.url} onChange={(e) => { const u = [...links]; u[i] = { ...u[i], url: e.target.value }; setLinks(u) }}
-                  className="flex-1 rounded-xl px-4 py-2 text-[13px] focus:outline-none" style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
-                <button type="button" onClick={() => setLinks(links.filter((_, j) => j !== i))} className="p-2 text-red-400 hover:text-red-300">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={loading} className="text-white font-semibold px-6 py-2 rounded-full text-[13px] hover:opacity-90 disabled:opacity-50"
-              style={{ background: 'var(--am-accent)' }}>
-              {loading ? 'Saving…' : editingSong ? 'Update' : 'Create'}
-            </button>
-            <button type="button" onClick={resetForm} className="text-[13px] font-medium hover:opacity-70 px-3" style={{ color: 'var(--am-text-2)' }}>Cancel</button>
-          </div>
-        </form>
+      {showNewForm && (
+        <div className="mb-6">
+          <ArtistForm artist={null} onDone={() => { setShowNewForm(false); onSaved() }} />
+        </div>
       )}
 
       <div>
-        {songs.map((song, i) => {
-          const thumbnail = song.cover || getYouTubeThumbnail(song.youtube_embed_url)
+        {artists.map((artist, i) => {
+          const isEditing = editingArtistId === artist.id
           return (
-          <div key={song.id} className="flex items-center gap-3 py-3 group"
-            style={i < songs.length - 1 ? { borderBottom: '1px solid var(--am-divider)' } : {}}>
-            {thumbnail ? (
-              <img src={thumbnail} alt={song.title} className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
-            ) : (
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
-                <Music2 className="w-5 h-5" style={{ color: 'var(--am-text-3)' }} />
+            <div key={artist.id}>
+              <div className="flex items-center gap-3 py-3 group"
+                style={i < artists.length - 1 && !isEditing ? { borderBottom: '1px solid var(--am-divider)' } : {}}>
+                {artist.image ? (
+                  <img src={artist.image} alt={artist.name} className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
+                    <svg viewBox="0 0 24 24" className="w-6 h-6" style={{ fill: 'var(--am-text-3)' }}>
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-semibold truncate">{artist.name}</p>
+                  {artist.bio && <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--am-text-2)' }}>{artist.bio}</p>}
+                </div>
+                <button onClick={() => { setEditingArtistId(isEditing ? null : artist.id); setShowNewForm(false) }} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--am-text-2)' }}><Edit2 className="w-4 h-4" /></button>
+                <button onClick={() => { deleteArtist(artist.id); if (isEditing) setEditingArtistId(null) }} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400"><Trash2 className="w-4 h-4" /></button>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold truncate">{song.title}</p>
-              <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--am-text-2)' }}>
-                {song.song_artists && song.song_artists.length > 0
-                  ? song.song_artists.map((sa: any) => `${sa.artist?.name || 'Unknown'}${sa.role !== 'primary' ? ` (${sa.role})` : ''}`).join(', ')
-                  : (song.artists as Artist[] | undefined)?.map(a => a.name).join(', ') || 'No artist'}
-                {(() => { const a = song as any; return a.album?.title ? ` · ${a.album.title}` : null })()}
-              </p>
+              {isEditing && (
+                <div className="mb-4">
+                  <ArtistForm artist={artist} onDone={() => { setEditingArtistId(null); onSaved() }} />
+                </div>
+              )}
             </div>
-            {(song.links as any)?.length > 0 && (
-              <span className="text-[11px] tabular-nums px-2 py-0.5 rounded-full" style={{ color: 'var(--am-text-3)', background: 'var(--am-surface-2)' }}>
-                {(song.links as any).length} links
-              </span>
-            )}
-            <button onClick={() => setEditingSong(song)} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--am-text-2)' }}>
-              <Edit2 className="w-4 h-4" />
-            </button>
-            <button onClick={() => deleteSong(song.id)} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400">
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        )})}
-        {songs.length === 0 && <p className="text-center py-10 text-[14px]" style={{ color: 'var(--am-text-2)' }}>No songs yet</p>}
+          )
+        })}
+        {artists.length === 0 && <p className="text-center py-10 text-[14px]" style={{ color: 'var(--am-text-2)' }}>No artists yet</p>}
       </div>
     </div>
   )
 }
 
-function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingArtist, onSaved, search, setSearch }: {
-  artists: Artist[]; showForm: boolean; setShowForm: (v: boolean) => void;
-  editingArtist: Artist | null; setEditingArtist: (a: Artist | null) => void; onSaved: () => void;
-  search: string; setSearch: (v: string) => void
-}) {
-  const [name, setName] = useState('')
-  const [image, setImage] = useState('')
-  const [bio, setBio] = useState('')
+function ArtistForm({ artist, onDone }: { artist: Artist | null; onDone: () => void }) {
+  const [name, setName] = useState(artist?.name || '')
+  const [image, setImage] = useState(artist?.image || '')
+  const [bio, setBio] = useState(artist?.bio || '')
   const [artistLinks, setArtistLinks] = useState<{ platform: ArtistPlatformKey; url: string }[]>([])
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (editingArtist) {
-      setName(editingArtist.name)
-      setImage(editingArtist.image || '')
-      setBio(editingArtist.bio || '')
-      setShowForm(true)
-      fetchArtistLinks(editingArtist.id)
-    }
-  }, [editingArtist])
+    if (artist) fetchArtistLinks(artist.id)
+  }, [])
 
   async function fetchArtistLinks(artistId: string) {
     const { data } = await supabase.from('artist_links').select('*').eq('artist_id', artistId)
     if (data) {
       setArtistLinks(data.map((l: any) => ({ platform: l.platform as ArtistPlatformKey, url: l.url })))
     }
-  }
-
-  function resetForm() {
-    setName(''); setImage(''); setBio(''); setArtistLinks([])
-    setEditingArtist(null); setShowForm(false)
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -462,18 +553,18 @@ function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingA
     if (!name.trim()) return
     setLoading(true)
 
-    if (editingArtist) {
+    if (artist) {
       await (supabase.from('artists') as any).update({
         name: name.trim(),
         image: image.trim() || null,
         bio: bio.trim() || null
-      }).eq('id', editingArtist.id)
+      }).eq('id', artist.id)
 
-      await supabase.from('artist_links').delete().eq('artist_id', editingArtist.id)
+      await supabase.from('artist_links').delete().eq('artist_id', artist.id)
       for (const link of artistLinks) {
         if (link.url.trim()) {
           await (supabase.from('artist_links') as any).insert({
-            artist_id: editingArtist.id,
+            artist_id: artist.id,
             platform: link.platform,
             url: link.url.trim()
           })
@@ -498,13 +589,7 @@ function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingA
         }
       }
     }
-    resetForm(); onSaved(); setLoading(false)
-  }
-
-  async function deleteArtist(id: string) {
-    await supabase.from('artist_links').delete().eq('artist_id', id)
-    await supabase.from('artists').delete().eq('id', id)
-    onSaved()
+    onDone(); setLoading(false)
   }
 
   function addArtistLink() {
@@ -522,160 +607,94 @@ function ArtistsTab({ artists, showForm, setShowForm, editingArtist, setEditingA
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[20px] font-bold">Artists <span className="text-[var(--am-text-3)] font-normal text-[16px]">({artists.length})</span></h2>
-        <button onClick={() => { resetForm(); setShowForm(true) }} className="flex items-center gap-1.5 text-white font-semibold px-4 py-2 rounded-full text-[13px] hover:opacity-90"
-          style={{ background: 'var(--am-accent)' }}>
-          <Plus className="w-4 h-4" /> Add Artist
-        </button>
-      </div>
-
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search artists..."
-        className="w-full mb-4 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
-        style={{ background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--am-accent)')}
-        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--am-border)')}
-      />
-
-      {showForm && (
-        <form onSubmit={handleSubmit} className="rounded-2xl p-5 mb-8 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
-          <h3 className="text-[17px] font-bold">{editingArtist ? 'Edit Artist' : 'New Artist'}</h3>
-
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Artist name" />
-          </div>
-
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Image</label>
-            <div className="flex gap-3 items-start">
-              {image && (
-                <img src={image} alt="Preview" className="w-16 h-16 rounded-full object-cover" />
-              )}
-              <div className="flex-1">
-                <input type="url" value={image} onChange={(e) => setImage(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Image URL" />
-                <div className="mt-2">
-                  <label className="cursor-pointer text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
-                    <Upload className="w-3 h-3" />
-                    <span>{uploading ? 'Uploading...' : 'Upload Image'}</span>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="hidden" />
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Bio</label>
-            <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4}
-              className={`${inputClass} resize-none`} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
-              placeholder="Artist biography..." />
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Artist Links</label>
-              <button type="button" onClick={addArtistLink}
-                className="text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
-                <Plus className="w-3 h-3" /> Add Link
-              </button>
-            </div>
-            {artistLinks.map((link, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <select value={link.platform} onChange={(e) => updateArtistLink(i, 'platform', e.target.value)}
-                  className="rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
-                  {Object.entries(ARTIST_PLATFORM_CONFIG).map(([key, config]: [string, any]) => (
-                    <option key={key} value={key}>{config.name}</option>
-                  ))}
-                </select>
-                <input type="url" value={link.url} onChange={(e) => updateArtistLink(i, 'url', e.target.value)}
-                  className="flex-1 rounded-xl px-4 py-2 text-[13px] focus:outline-none" style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
-                <button type="button" onClick={() => removeArtistLink(i)} className="p-2 text-red-400 hover:text-red-300">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={loading || uploading} className="text-white font-semibold px-6 py-2 rounded-full text-[13px] hover:opacity-90 disabled:opacity-50"
-              style={{ background: 'var(--am-accent)' }}>
-              {loading ? 'Saving…' : editingArtist ? 'Update' : 'Create'}
-            </button>
-            <button type="button" onClick={resetForm} className="text-[13px] font-medium hover:opacity-70 px-3" style={{ color: 'var(--am-text-2)' }}>Cancel</button>
-          </div>
-        </form>
-      )}
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
+      <h3 className="text-[17px] font-bold">{artist ? 'Edit Artist' : 'New Artist'}</h3>
 
       <div>
-        {artists.map((artist, i) => (
-          <div key={artist.id} className="flex items-center gap-3 py-3 group"
-            style={i < artists.length - 1 ? { borderBottom: '1px solid var(--am-divider)' } : {}}>
-            {artist.image ? (
-              <img src={artist.image} alt={artist.name} className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
-            ) : (
-              <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
-                <svg viewBox="0 0 24 24" className="w-6 h-6" style={{ fill: 'var(--am-text-3)' }}>
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold truncate">{artist.name}</p>
-              {artist.bio && <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--am-text-2)' }}>{artist.bio}</p>}
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Name</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Artist name" />
+      </div>
+
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Image</label>
+        <div className="flex gap-3 items-start">
+          {image && (
+            <img src={image} alt="Preview" className="w-16 h-16 rounded-full object-cover" />
+          )}
+          <div className="flex-1">
+            <input type="url" value={image} onChange={(e) => setImage(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Image URL" />
+            <div className="mt-2">
+              <label className="cursor-pointer text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
+                <Upload className="w-3 h-3" />
+                <span>{uploading ? 'Uploading...' : 'Upload Image'}</span>
+                <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="hidden" />
+              </label>
             </div>
-            <button onClick={() => setEditingArtist(artist)} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--am-text-2)' }}><Edit2 className="w-4 h-4" /></button>
-            <button onClick={() => deleteArtist(artist.id)} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400"><Trash2 className="w-4 h-4" /></button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Bio</label>
+        <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4}
+          className={`${inputClass} resize-none`} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
+          placeholder="Artist biography..." />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Artist Links</label>
+          <button type="button" onClick={addArtistLink}
+            className="text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
+            <Plus className="w-3 h-3" /> Add Link
+          </button>
+        </div>
+        {artistLinks.map((link, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <select value={link.platform} onChange={(e) => updateArtistLink(i, 'platform', e.target.value)}
+              className="rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
+              {Object.entries(ARTIST_PLATFORM_CONFIG).map(([key, config]: [string, any]) => (
+                <option key={key} value={key}>{config.name}</option>
+              ))}
+            </select>
+            <input type="url" value={link.url} onChange={(e) => updateArtistLink(i, 'url', e.target.value)}
+              className="flex-1 rounded-xl px-4 py-2 text-[13px] focus:outline-none" style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
+            <button type="button" onClick={() => removeArtistLink(i)} className="p-2 text-red-400 hover:text-red-300">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         ))}
-        {artists.length === 0 && <p className="text-center py-10 text-[14px]" style={{ color: 'var(--am-text-2)' }}>No artists yet</p>}
       </div>
-    </div>
+
+      <div className="flex gap-3 pt-1">
+        <button type="submit" disabled={loading || uploading} className="text-white font-semibold px-6 py-2 rounded-full text-[13px] hover:opacity-90 disabled:opacity-50"
+          style={{ background: 'var(--am-accent)' }}>
+          {loading ? 'Saving…' : artist ? 'Update' : 'Create'}
+        </button>
+        <button type="button" onClick={onDone} className="text-[13px] font-medium hover:opacity-70 px-3" style={{ color: 'var(--am-text-2)' }}>Cancel</button>
+      </div>
+    </form>
   )
 }
 
-function AlbumsTab({ albums, artists, showForm, setShowForm, editingAlbum, setEditingAlbum, onSaved, search, setSearch }: {
-  albums: Album[]; artists: Artist[]; showForm: boolean; setShowForm: (v: boolean) => void;
-  editingAlbum: Album | null; setEditingAlbum: (a: Album | null) => void; onSaved: () => void;
-  search: string; setSearch: (v: string) => void
+async function deleteArtist(id: string) {
+  await supabase.from('artist_links').delete().eq('artist_id', id)
+  await supabase.from('artists').delete().eq('id', id)
+}
+
+function AlbumsTab({ albums, artists, editingAlbumId, setEditingAlbumId, showNewForm, setShowNewForm, onSaved, search, setSearch }: {
+  albums: Album[]; artists: Artist[];
+  editingAlbumId: string | null; setEditingAlbumId: (id: string | null) => void;
+  showNewForm: boolean; setShowNewForm: (v: boolean) => void;
+  onSaved: () => void; search: string; setSearch: (v: string) => void
 }) {
-  const [title, setTitle] = useState('')
-  const [cover, setCover] = useState('')
-  const [artistId, setArtistId] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (editingAlbum) { setTitle(editingAlbum.title); setCover(editingAlbum.cover || ''); setArtistId(editingAlbum.artist_id); setShowForm(true) }
-  }, [editingAlbum])
-
-  function resetForm() { setTitle(''); setCover(''); setArtistId(''); setEditingAlbum(null); setShowForm(false) }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!title.trim() || !artistId) return
-    setLoading(true)
-    if (editingAlbum) {
-      await (supabase.from('albums') as any).update({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId }).eq('id', editingAlbum.id)
-    } else {
-      await (supabase.from('albums') as any).insert({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId })
-    }
-    resetForm(); onSaved(); setLoading(false)
-  }
-
-  async function deleteAlbum(id: string) { await supabase.from('albums').delete().eq('id', id); onSaved() }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-[20px] font-bold">Albums <span className="text-[var(--am-text-3)] font-normal text-[16px]">({albums.length})</span></h2>
-        <button onClick={() => { resetForm(); setShowForm(true) }} className="flex items-center gap-1.5 text-white font-semibold px-4 py-2 rounded-full text-[13px] hover:opacity-90"
+        <button onClick={() => { setShowNewForm(!showNewForm); setEditingAlbumId(null) }} className="flex items-center gap-1.5 text-white font-semibold px-4 py-2 rounded-full text-[13px] hover:opacity-90"
           style={{ background: 'var(--am-accent)' }}>
-          <Plus className="w-4 h-4" /> Add Album
+          <Plus className="w-4 h-4" /> {showNewForm ? 'Close' : 'Add Album'}
         </button>
       </div>
 
@@ -685,60 +704,102 @@ function AlbumsTab({ albums, artists, showForm, setShowForm, editingAlbum, setEd
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search albums..."
         className="w-full mb-4 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
-        style={{ background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--am-accent)')}
-        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--am-border)')}
+        style={inputStyle}
+        onFocus={inputFocus}
+        onBlur={inputBlur}
       />
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="rounded-2xl p-5 mb-8 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
-          <h3 className="text-[17px] font-bold">{editingAlbum ? 'Edit Album' : 'New Album'}</h3>
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Title</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Album title" />
-          </div>
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Artist</label>
-            <select value={artistId} onChange={(e) => setArtistId(e.target.value)} required className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}>
-              <option value="">Select artist</option>
-              {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Cover URL</label>
-            <input type="url" value={cover} onChange={(e) => setCover(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
-          </div>
-          <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={loading} className="text-white font-semibold px-6 py-2 rounded-full text-[13px] hover:opacity-90 disabled:opacity-50"
-              style={{ background: 'var(--am-accent)' }}>
-              {loading ? 'Saving…' : editingAlbum ? 'Update' : 'Create'}
-            </button>
-            <button type="button" onClick={resetForm} className="text-[13px] font-medium hover:opacity-70 px-3" style={{ color: 'var(--am-text-2)' }}>Cancel</button>
-          </div>
-        </form>
+      {showNewForm && (
+        <div className="mb-6">
+          <AlbumForm artists={artists} album={null} onDone={() => { setShowNewForm(false); onSaved() }} />
+        </div>
       )}
 
       <div>
-        {albums.map((album, i) => (
-          <div key={album.id} className="flex items-center gap-3 py-3 group"
-            style={i < albums.length - 1 ? { borderBottom: '1px solid var(--am-divider)' } : {}}>
-            {album.cover ? (
-              <img src={album.cover} alt={album.title} className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
-            ) : (
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
-                <Music2 className="w-5 h-5" style={{ color: 'var(--am-text-3)' }} />
+        {albums.map((album, i) => {
+          const isEditing = editingAlbumId === album.id
+          return (
+            <div key={album.id}>
+              <div className="flex items-center gap-3 py-3 group"
+                style={i < albums.length - 1 && !isEditing ? { borderBottom: '1px solid var(--am-divider)' } : {}}>
+                {album.cover ? (
+                  <img src={album.cover} alt={album.title} className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
+                    <Music2 className="w-5 h-5" style={{ color: 'var(--am-text-3)' }} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-semibold truncate">{album.title}</p>
+                  <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--am-text-2)' }}>{(album.artist as Artist | undefined)?.name || 'Unknown'}</p>
+                </div>
+                <button onClick={() => { setEditingAlbumId(isEditing ? null : album.id); setShowNewForm(false) }} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--am-text-2)' }}><Edit2 className="w-4 h-4" /></button>
+                <button onClick={() => { deleteAlbum(album.id); if (isEditing) setEditingAlbumId(null) }} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400"><Trash2 className="w-4 h-4" /></button>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold truncate">{album.title}</p>
-              <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--am-text-2)' }}>{(album.artist as Artist | undefined)?.name || 'Unknown'}</p>
+              {isEditing && (
+                <div className="mb-4">
+                  <AlbumForm artists={artists} album={album} onDone={() => { setEditingAlbumId(null); onSaved() }} />
+                </div>
+              )}
             </div>
-            <button onClick={() => setEditingAlbum(album)} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--am-text-2)' }}><Edit2 className="w-4 h-4" /></button>
-            <button onClick={() => deleteAlbum(album.id)} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400"><Trash2 className="w-4 h-4" /></button>
-          </div>
-        ))}
+          )
+        })}
         {albums.length === 0 && <p className="text-center py-10 text-[14px]" style={{ color: 'var(--am-text-2)' }}>No albums yet</p>}
       </div>
     </div>
   )
 }
+
+function AlbumForm({ artists, album, onDone }: { artists: Artist[]; album: Album | null; onDone: () => void }) {
+  const [title, setTitle] = useState(album?.title || '')
+  const [cover, setCover] = useState(album?.cover || '')
+  const [artistId, setArtistId] = useState(album?.artist_id || '')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!title.trim() || !artistId) return
+    setLoading(true)
+    if (album) {
+      await (supabase.from('albums') as any).update({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId }).eq('id', album.id)
+    } else {
+      await (supabase.from('albums') as any).insert({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId })
+    }
+    onDone(); setLoading(false)
+  }
+
+  const artistOptions: { value: string; label: string }[] = artists.map(a => ({ value: a.id, label: a.name }))
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
+      <h3 className="text-[17px] font-bold">{album ? 'Edit Album' : 'New Album'}</h3>
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Title</label>
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Album title" />
+      </div>
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Artist</label>
+        <SearchableSelect
+          value={artistId}
+          onChange={setArtistId}
+          options={artistOptions}
+          placeholder="Select artist"
+          label="Artist"
+        />
+      </div>
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Cover URL</label>
+        <input type="url" value={cover} onChange={(e) => setCover(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
+      </div>
+      <div className="flex gap-3 pt-1">
+        <button type="submit" disabled={loading} className="text-white font-semibold px-6 py-2 rounded-full text-[13px] hover:opacity-90 disabled:opacity-50"
+          style={{ background: 'var(--am-accent)' }}>
+          {loading ? 'Saving…' : album ? 'Update' : 'Create'}
+        </button>
+        <button type="button" onClick={onDone} className="text-[13px] font-medium hover:opacity-70 px-3" style={{ color: 'var(--am-text-2)' }}>Cancel</button>
+      </div>
+    </form>
+  )
+}
+
+async function deleteAlbum(id: string) { await supabase.from('albums').delete().eq('id', id) }
