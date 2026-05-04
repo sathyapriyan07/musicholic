@@ -60,7 +60,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="py-8">
+    <div>
       {/* Hero - Featured Song */}
       {featuredSongs.length > 0 && (
         <div className="relative overflow-hidden mb-10">
@@ -78,7 +78,7 @@ export default function HomePage() {
           )}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--am-bg) 85%)' }} />
 
-          <div className="relative z-10 px-5 lg:px-8 pt-4 pb-8">
+          <div className="relative z-10 px-5 lg:px-8 pt-6 pb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 max-w-3xl">
               {featuredSongs[0].cover ? (
                 <img src={featuredSongs[0].cover} alt={featuredSongs[0].title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl" />
