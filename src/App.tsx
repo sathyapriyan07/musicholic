@@ -17,7 +17,7 @@ export default function App() {
     <AuthProvider>
       <div className="min-h-screen" style={{ background: 'var(--am-bg)' }}>
         <TopNav />
-        <main className="pt-[52px] pb-[56px] lg:pb-0 max-w-[1800px] mx-auto">
+        <main className="pb-[56px] lg:pb-0 max-w-[1800px] mx-auto">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/song/:id" element={<SongPage />} />

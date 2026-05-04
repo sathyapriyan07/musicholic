@@ -97,7 +97,7 @@ export default function ArtistPage() {
         )}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0.2) 0%, var(--am-bg) 80%)' }} />
 
-        <div className="relative z-10 px-5 lg:px-8 pt-10 pb-8">
+        <div className="relative z-10 px-5 lg:px-8 pt-4 pb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
             {artist.image ? (
               <img src={artist.image} alt={artist.name} className="w-48 h-48 sm:w-56 sm:h-56 rounded-full object-cover shadow-2xl flex-shrink-0 ring-2 ring-white/10" />

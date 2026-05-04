@@ -52,7 +52,7 @@ export default function AlbumPage() {
         )}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--am-bg) 85%)' }} />
 
-        <div className="relative z-10 px-5 lg:px-8 pt-10 pb-8">
+        <div className="relative z-10 px-5 lg:px-8 pt-4 pb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
             {album.cover ? (
               <img src={album.cover} alt={album.title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl flex-shrink-0" />

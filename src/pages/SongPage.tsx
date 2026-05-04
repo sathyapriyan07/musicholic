@@ -101,7 +101,7 @@ export default function SongPage() {
         )}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--am-bg) 85%)' }} />
 
-        <div className="relative z-10 px-5 lg:px-8 pt-10 pb-8">
+        <div className="relative z-10 px-5 lg:px-8 pt-4 pb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 max-w-3xl">
             {/* Cover art */}
             <div className="flex-shrink-0">
