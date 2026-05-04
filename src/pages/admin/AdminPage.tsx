@@ -292,6 +292,9 @@ function SongForm({ artists, albums, song, onDone }: {
   const [itunesQuery, setItunesQuery] = useState('')
   const [itunesResults, setItunesResults] = useState<any[]>([])
   const [itunesSearching, setItunesSearching] = useState(false)
+  const [albumItunesQuery, setAlbumItunesQuery] = useState('')
+  const [albumItunesResults, setAlbumItunesResults] = useState<any[]>([])
+  const [albumItunesSearching, setAlbumItunesSearching] = useState(false)
 
   async function searchItunes() {
     if (!itunesQuery.trim()) return
@@ -345,6 +348,72 @@ function SongForm({ artists, albums, song, onDone }: {
     }
     setItunesResults([])
     setItunesQuery('')
+  }
+
+  async function searchAlbumItunes() {
+    if (!albumItunesQuery.trim()) return
+    setAlbumItunesSearching(true)
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(albumItunesQuery.trim())}&entity=album&limit=10`)
+      const data = await res.json()
+      setAlbumItunesResults(data.results || [])
+    } catch {
+      setAlbumItunesResults([])
+    }
+    setAlbumItunesSearching(false)
+  }
+
+  async function selectAlbumItunesResult(r: any) {
+    const hiRes = (r.artworkUrl100 || '').replace('/100x100', '/600x600')
+    const artistNames = parseArtistNames(r.artistName || '')
+
+    // Upsert each artist
+    for (const name of artistNames) {
+      const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
+      if (existingArtist && !existingArtist.image) {
+        await (supabase.from('artists') as any).update({ image: r.artworkUrl100 || null }).eq('id', existingArtist.id)
+      }
+      if (!existingArtist) {
+        await (supabase.from('artists') as any).insert({
+          name,
+          image: r.artworkUrl100 || null,
+        })
+      }
+    }
+
+    // Upsert album
+    const { data: existingAlbum } = await supabase
+      .from('albums')
+      .select('*')
+      .ilike('title', r.collectionName || '')
+      .maybeSingle()
+
+    if (existingAlbum) {
+      setAlbumId((existingAlbum as any).id)
+      await (supabase.from('albums') as any).update({ cover: hiRes }).eq('id', (existingAlbum as any).id)
+    } else {
+      let albumArtistId: string | null = null
+      for (const name of artistNames) {
+        const found = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
+        if (found) { albumArtistId = found.id; break }
+      }
+
+      if (!albumArtistId && artistNames.length > 0) {
+        const { data: dbArtist } = await (supabase.from('artists') as any)
+          .select('id').ilike('name', artistNames[0]).maybeSingle()
+        if (dbArtist) albumArtistId = dbArtist.id
+      }
+
+      const { data: newAlbum } = await (supabase.from('albums') as any).insert({
+        title: r.collectionName || 'Unknown Album',
+        artist_id: albumArtistId,
+        cover: hiRes,
+      }).select().single()
+      if (newAlbum) setAlbumId((newAlbum as Album).id)
+    }
+
+    setAlbumItunesResults([])
+    setAlbumItunesQuery('')
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -523,6 +592,55 @@ function SongForm({ artists, albums, song, onDone }: {
           placeholder="No album"
           label="Album"
         />
+      </div>
+
+      <div>
+        <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Search iTunes for Album</label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={albumItunesQuery}
+            onChange={(e) => setAlbumItunesQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), searchAlbumItunes())}
+            className="flex-1 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]"
+            style={inputStyle}
+            onFocus={inputFocus}
+            onBlur={inputBlur}
+            placeholder="Album name..."
+          />
+          <button
+            type="button"
+            onClick={searchAlbumItunes}
+            disabled={albumItunesSearching}
+            className="px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-opacity hover:opacity-80 disabled:opacity-50"
+            style={{ background: 'var(--am-accent)', color: '#fff' }}
+          >
+            <Search className="w-4 h-4" />
+          </button>
+        </div>
+
+        {albumItunesResults.length > 0 && (
+          <div className="mt-3 space-y-2 max-h-72 overflow-y-auto">
+            {albumItunesResults.map((r: any, i: number) => (
+              <button
+                key={i}
+                type="button"
+                className="w-full flex items-center gap-3 p-2 rounded-xl transition-colors hover:bg-white/5 text-left"
+                onClick={() => selectAlbumItunesResult(r)}
+              >
+                <img src={r.artworkUrl100} alt={r.collectionName} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold truncate">{r.collectionName}</p>
+                  <p className="text-[11px] truncate" style={{ color: 'var(--am-text-2)' }}>{r.artistName}</p>
+                </div>
+                <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: 'var(--am-accent)' }}>Assign</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {albumItunesResults.length === 0 && albumItunesQuery.length > 0 && !albumItunesSearching && (
+          <p className="mt-2 text-[12px] text-center" style={{ color: 'var(--am-text-3)' }}>No results found</p>
+        )}
       </div>
       <div>
         <div className="flex items-center justify-between mb-2">
