@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@fontsource/geist-sans/index.css";
 
 @theme inline {
   --color-accent: #fc3c44;
@@ -11,7 +10,7 @@
   --color-am-text: #ffffff;
   --color-am-text-2: #a0a0a0;
   --color-am-text-3: #555555;
-  --font-sans: 'Geist Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-sans: 'Momo Trust Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 :root {
