@@ -47,7 +47,6 @@ export default function BulkEdit({ type, items, artists, onSaved }: BulkEditProp
       } else if (action === 'updateArtist' && artistId) {
         if (type === 'song') {
           await supa.from('songs').update({ artist_ids: [artistId] }).in('id', selectedIds)
-          // Update song_artists
           await supa.from('song_artists').delete().in('song_id', selectedIds)
           for (const songId of selectedIds) {
             await supa.from('song_artists').insert({

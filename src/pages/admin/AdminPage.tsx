@@ -10,9 +10,10 @@ import { cn } from '@/lib/utils'
 import { getYouTubeThumbnail } from '@/lib/utils'
 import ITunesImport from './iTunesImport'
 import BulkEdit from './BulkEdit'
+import BulkLinkManager from './BulkLinkManager'
 import SearchableSelect from '@/components/SearchableSelect'
 
-type AdminTab = 'songs' | 'artists' | 'albums' | 'itunes'
+type AdminTab = 'songs' | 'artists' | 'albums' | 'itunes' | 'links'
 
 const inputClass = 'w-full rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]'
 const inputStyle = { background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }
@@ -120,6 +121,7 @@ export default function AdminPage() {
     { key: 'artists', label: 'Artists' },
     { key: 'albums', label: 'Albums' },
     { key: 'itunes', label: 'iTunes Import' },
+    { key: 'links', label: 'Links' },
   ]
 
   const handleTabChange = (tab: AdminTab) => {
@@ -170,6 +172,9 @@ export default function AdminPage() {
       )}
       {activeTab === 'itunes' && (
         <ITunesImport onImported={fetchData} />
+      )}
+      {activeTab === 'links' && (
+        <BulkLinkManager songs={songs} onSaved={fetchData} />
       )}
 
       {activeTab === 'songs' && filteredSongs.length > 0 && (
@@ -327,21 +332,19 @@ function SongForm({ artists, albums, song, onDone }: {
       for (const { name, index } of mapped) {
         const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
         if (existingArtist) {
-          setSongArtists(prev => {
-            const has = prev.some(sa => sa.artistId === existingArtist.id)
-            if (has) return prev
-            return [...prev, { artistId: existingArtist.id, role: index === 0 ? 'primary' : 'featured', position: index }]
-          })
-          if (!existingArtist.image) {
-            await (supabase.from('artists') as any).update({ image: r.artworkUrl100 || null }).eq('id', existingArtist.id)
-          }
+            setSongArtists(prev => {
+              const has = prev.some(sa => sa.artistId === existingArtist.id)
+              if (has) return prev
+              return [...prev, { artistId: existingArtist.id, role: index === 0 ? 'primary' : 'featured', position: index }]
+            })
+            // Artist image intentionally not imported
         } else {
-          const { data } = await (supabase.from('artists') as any).insert({
+          const { data: newArtist } = await (supabase.from('artists') as any).insert({
             name,
-            image: r.artworkUrl100 || null,
+            image: null,
           }).select().single()
-          if (data) {
-            setSongArtists(prev => [...prev, { artistId: (data as Artist).id, role: index === 0 ? 'primary' : 'featured', position: index }])
+          if (newArtist) {
+            setSongArtists(prev => [...prev, { artistId: (newArtist as Artist).id, role: index === 0 ? 'primary' : 'featured', position: index }])
           }
         }
       }
@@ -371,12 +374,12 @@ function SongForm({ artists, albums, song, onDone }: {
     for (const name of artistNames) {
       const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
       if (existingArtist && !existingArtist.image) {
-        await (supabase.from('artists') as any).update({ image: r.artworkUrl100 || null }).eq('id', existingArtist.id)
+        // Artist image intentionally not imported
       }
       if (!existingArtist) {
         await (supabase.from('artists') as any).insert({
           name,
-          image: r.artworkUrl100 || null,
+          image: null,
         })
       }
     }
@@ -855,7 +858,16 @@ function ArtistForm({ artist, onDone }: { artist: Artist | null; onDone: () => v
         <label className="block text-[12px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: 'var(--am-text-3)' }}>Image</label>
         <div className="flex gap-3 items-start">
           {image && (
-            <img src={image} alt="Preview" className="w-16 h-16 rounded-full object-cover" />
+            <div className="relative flex-shrink-0">
+              <img src={image} alt="Preview" className="w-16 h-16 rounded-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setImage('')}
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] hover:bg-red-400"
+              >
+                ×
+              </button>
+            </div>
           )}
           <div className="flex-1">
             <input type="url" value={image} onChange={(e) => setImage(e.target.value)} className={inputClass} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="Image URL" />
@@ -1021,13 +1033,11 @@ function AlbumForm({ artists, album, onDone }: { artists: Artist[]; album: Album
         const existingArtist = artists.find(a => a.name.toLowerCase() === name.toLowerCase())
         if (existingArtist) {
           savedIds.push(existingArtist.id)
-          if (!existingArtist.image) {
-            await (supabase.from('artists') as any).update({ image: r.artworkUrl100 || null }).eq('id', existingArtist.id)
-          }
+          // Artist image intentionally not imported
         } else {
           const { data } = await (supabase.from('artists') as any).insert({
             name,
-            image: r.artworkUrl100 || null,
+            image: null,
           }).select().single()
           if (data) savedIds.push((data as Artist).id)
         }
