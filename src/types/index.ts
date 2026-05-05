@@ -33,7 +33,8 @@ export interface Song {
 
 export interface Link {
   id: string
-  song_id: string
+  song_id: string | null
+  album_id: string | null
   platform: 'spotify' | 'youtube_music' | 'apple_music' | 'jiosaavn' | 'gaana' | 'amazon_music'
   url: string
   created_at: string

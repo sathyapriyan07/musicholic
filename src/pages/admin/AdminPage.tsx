@@ -174,7 +174,7 @@ export default function AdminPage() {
         <ITunesImport onImported={fetchData} />
       )}
       {activeTab === 'links' && (
-        <BulkLinkManager songs={songs} onSaved={fetchData} />
+        <BulkLinkManager songs={songs} albums={albums} onSaved={fetchData} />
       )}
 
       {activeTab === 'songs' && filteredSongs.length > 0 && (
@@ -1006,6 +1006,18 @@ function AlbumForm({ artists, album, onDone }: { artists: Artist[]; album: Album
   const [itunesQuery, setItunesQuery] = useState('')
   const [itunesResults, setItunesResults] = useState<any[]>([])
   const [itunesSearching, setItunesSearching] = useState(false)
+  const [links, setLinks] = useState<{ platform: PlatformKey; url: string }[]>([])
+
+  useEffect(() => {
+    if (album) fetchAlbumLinks(album.id)
+  }, [])
+
+  async function fetchAlbumLinks(albumId: string) {
+    const { data } = await supabase.from('links').select('*').eq('album_id', albumId)
+    if (data) {
+      setLinks(data.map((l: any) => ({ platform: l.platform as PlatformKey, url: l.url })))
+    }
+  }
 
   async function searchItunes() {
     if (!itunesQuery.trim()) return
@@ -1057,8 +1069,17 @@ function AlbumForm({ artists, album, onDone }: { artists: Artist[]; album: Album
     setLoading(true)
     if (album) {
       await (supabase.from('albums') as any).update({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId }).eq('id', album.id)
+      await supabase.from('links').delete().eq('album_id', album.id)
+      for (const link of links) {
+        if (link.url.trim()) await (supabase.from('links') as any).insert({ album_id: album.id, platform: link.platform, url: link.url.trim() })
+      }
     } else {
-      await (supabase.from('albums') as any).insert({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId })
+      const { data } = await (supabase.from('albums') as any).insert({ title: title.trim(), cover: cover.trim() || null, artist_id: artistId }).select().single()
+      if (data) {
+        for (const link of links) {
+          if (link.url.trim()) await (supabase.from('links') as any).insert({ album_id: (data as Album).id, platform: link.platform, url: link.url.trim() })
+        }
+      }
     }
     onDone(); setLoading(false)
   }
@@ -1136,6 +1157,29 @@ function AlbumForm({ artists, album, onDone }: { artists: Artist[]; album: Album
           placeholder="Select artist"
           label="Artist"
         />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Streaming Links</label>
+          <button type="button" onClick={() => setLinks([...links, { platform: 'spotify', url: '' }])}
+            className="text-[12px] font-semibold flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--am-accent)' }}>
+            <Plus className="w-3 h-3" /> Add Link
+          </button>
+        </div>
+        {links.map((link, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <select value={link.platform} onChange={(e) => { const u = [...links]; u[i] = { ...u[i], platform: e.target.value as PlatformKey }; setLinks(u) }}
+              className="rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
+              {Object.entries(PLATFORM_CONFIG).map(([key, config]) => <option key={key} value={key}>{config.name}</option>)}
+            </select>
+            <input type="url" value={link.url} onChange={(e) => { const u = [...links]; u[i] = { ...u[i], url: e.target.value }; setLinks(u) }}
+              className="flex-1 rounded-xl px-4 py-2 text-[13px] focus:outline-none" style={inputStyle} onFocus={inputFocus} onBlur={inputBlur} placeholder="https://..." />
+            <button type="button" onClick={() => setLinks(links.filter((_, j) => j !== i))} className="p-2 text-red-400 hover:text-red-300">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
       </div>
       <div className="flex gap-3 pt-1">
         <button type="submit" disabled={loading} className="text-white font-semibold px-6 py-2 rounded-full text-[13px] hover:opacity-90 disabled:opacity-50"
