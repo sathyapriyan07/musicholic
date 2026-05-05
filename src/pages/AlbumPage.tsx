@@ -41,53 +41,40 @@ export default function AlbumPage() {
     <div>
       {/* Hero */}
       <div className="relative overflow-hidden">
-        {album.cover && (
+        {album.cover ? (
           <div
-            className="absolute inset-0 scale-110"
+            className="absolute inset-0"
             style={{
               backgroundImage: `url(${album.cover})`,
               backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'blur(40px) saturate(1.4)',
-              opacity: 0.35,
+              backgroundPosition: 'top',
             }}
           />
+        ) : (
+          <div className="absolute inset-0" style={{ background: 'var(--am-surface-2)' }} />
         )}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--am-bg) 85%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 50%, var(--am-bg) 100%)' }} />
 
-        <div className="relative z-10 px-5 lg:px-8 pt-4 pb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
-            {album.cover ? (
-              <img src={album.cover} alt={album.title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl flex-shrink-0" />
-            ) : (
-              <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'var(--am-surface-2)' }}>
-                <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
-                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                </svg>
-              </div>
+        <div className="relative z-10 px-5 lg:px-8 pt-32 pb-12">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 leading-tight" style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{album.title}</h1>
+            {artist && (
+              <p className="text-[14px] flex items-center justify-center gap-2" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+                <Link to={`/artist/${artist.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  {artist.image ? (
+                    <img src={artist.image} alt={artist.name} className="w-6 h-6 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                      <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ fill: 'rgba(255,255,255,0.7)' }}>
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                    </div>
+                  )}
+                  <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>{artist.name}</span>
+                </Link>
+                {' · '}{songs.length} {songs.length === 1 ? 'song' : 'songs'}
+              </p>
             )}
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--am-text-3)' }}>Album</p>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 leading-tight">{album.title}</h1>
-              {artist && (
-                <p className="text-[14px] flex items-center gap-2" style={{ color: 'var(--am-text-2)' }}>
-                  <Link to={`/artist/${artist.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    {artist.image ? (
-                      <img src={artist.image} alt={artist.name} className="w-6 h-6 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
-                        <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ fill: 'var(--am-text-3)' }}>
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
-                      </div>
-                    )}
-                    <span className="font-semibold" style={{ color: 'var(--am-accent)' }}>{artist.name}</span>
-                  </Link>
-                  {' · '}{songs.length} {songs.length === 1 ? 'song' : 'songs'}
-                </p>
-              )}
-            </div>
           </div>
         </div>
       </div>

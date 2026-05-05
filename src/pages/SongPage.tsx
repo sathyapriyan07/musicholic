@@ -104,7 +104,7 @@ export default function SongPage() {
 
         <div className="relative z-10 px-5 lg:px-8 pt-32 pb-12">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 leading-tight" style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{song.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 leading-tight" style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{song.title}</h1>
 
             {song.artists && song.artists.length > 0 && (
               <div className="flex flex-wrap items-center justify-center gap-4 mb-4">

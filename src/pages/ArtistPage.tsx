@@ -83,43 +83,30 @@ export default function ArtistPage() {
     <div>
       {/* Hero */}
       <div className="relative overflow-hidden">
-        {artist.image && (
+        {artist.image ? (
           <div
-            className="absolute inset-0 scale-110"
+            className="absolute inset-0"
             style={{
               backgroundImage: `url(${artist.image})`,
               backgroundSize: 'cover',
-              backgroundPosition: 'center top',
-              filter: 'blur(40px) saturate(1.2)',
-              opacity: 0.3,
+              backgroundPosition: 'top',
             }}
           />
+        ) : (
+          <div className="absolute inset-0" style={{ background: 'var(--am-surface-2)' }} />
         )}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0.2) 0%, var(--am-bg) 80%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 50%, var(--am-bg) 100%)' }} />
 
-        <div className="relative z-10 px-5 lg:px-8 pt-4 pb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
-            {artist.image ? (
-              <img src={artist.image} alt={artist.name} className="w-48 h-48 sm:w-56 sm:h-56 rounded-full object-cover shadow-2xl flex-shrink-0 ring-2 ring-white/10" />
-            ) : (
-              <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ background: 'var(--am-surface-2)' }}>
-                <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
-              </div>
+        <div className="relative z-10 px-5 lg:px-8 pt-32 pb-12">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 leading-tight" style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{artist.name}</h1>
+            <p className="text-[14px] mb-3" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+              {songs.length} {songs.length === 1 ? 'song' : 'songs'}
+              {albums.length > 0 && ` · ${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`}
+            </p>
+            {artist.bio && (
+              <p className="text-[14px] leading-relaxed max-w-lg mx-auto" style={{ color: 'rgba(255,255,255,0.85)', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>{artist.bio}</p>
             )}
-            <div>
-              <p className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--am-text-3)' }}>Artist</p>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 leading-tight">{artist.name}</h1>
-              <p className="text-[14px] mb-3" style={{ color: 'var(--am-text-2)' }}>
-                {songs.length} {songs.length === 1 ? 'song' : 'songs'}
-                {albums.length > 0 && ` · ${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`}
-              </p>
-              {artist.bio && (
-                <p className="text-[14px] leading-relaxed" style={{ color: 'var(--am-text-2)' }}>{artist.bio}</p>
-              )}
-            </div>
           </div>
         </div>
       </div>
