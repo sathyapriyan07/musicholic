@@ -82,74 +82,57 @@ export default function SongPage() {
     <div className="px-6 py-20 text-center" style={{ color: 'var(--am-text-2)' }}>Song not found</div>
   )
 
+  const coverUrl = song.cover || (song.album && song.album.cover) || getYouTubeThumbnail(song.youtube_embed_url)
+
   return (
     <div>
-      {/* Hero with blurred art background */}
+      {/* Hero with cover as full background */}
       <div className="relative overflow-hidden">
-        {/* Blurred background */}
-        {(song.cover || (song.album && song.album.cover) || (song.artists && song.artists[0]?.image) || getYouTubeThumbnail(song.youtube_embed_url)) && (
+        {coverUrl ? (
           <div
-            className="absolute inset-0 scale-110"
+            className="absolute inset-0"
             style={{
-              backgroundImage: `url(${song.cover || song.album?.cover || song.artists?.[0]?.image || getYouTubeThumbnail(song.youtube_embed_url)})`,
+              backgroundImage: `url(${coverUrl})`,
               backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'blur(40px) saturate(1.4)',
-              opacity: 0.35,
+              backgroundPosition: 'top',
             }}
           />
+        ) : (
+          <div className="absolute inset-0" style={{ background: 'var(--am-surface-2)' }} />
         )}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--am-bg) 85%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 50%, var(--am-bg) 100%)' }} />
 
-        <div className="relative z-10 px-5 lg:px-8 pt-4 pb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 max-w-3xl">
-            {/* Cover art */}
-            <div className="flex-shrink-0">
-              {song.cover || (song.album && song.album.cover) || (song.artists && song.artists[0]?.image) ? (
-                <img src={(song.cover || song.album?.cover || song.artists?.[0]?.image) as string} alt={song.title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl" />
-              ) : (
-                <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl flex items-center justify-center"
-                  style={{ background: 'var(--am-surface-2)' }}>
-                  <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
-                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                  </svg>
-                </div>
-              )}
-            </div>
+        <div className="relative z-10 px-5 lg:px-8 pt-32 pb-12">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight" style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{song.title}</h1>
 
-            {/* Song info */}
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--am-text-3)' }}>Song</p>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 leading-tight">{song.title}</h1>
-
-              {song.artists && song.artists.length > 0 && (
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                  {song.artists.map((artist: Artist) => (
-                    <Link key={artist.id} to={`/artist/${artist.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                      {artist.image ? (
-                        <img src={artist.image} alt={artist.name} className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
-                          <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ fill: 'var(--am-text-3)' }}>
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                          </svg>
-                        </div>
-                      )}
-                      <span className="font-semibold text-[15px]" style={{ color: 'var(--am-accent)' }}>{artist.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {song.album && (
-                <p className="text-[13px] mb-4" style={{ color: 'var(--am-text-2)' }}>
-                  From{' '}
-                  <Link to={`/album/${song.album.id}`} className="font-semibold hover:underline" style={{ color: 'var(--am-text-2)' }}>
-                    {song.album.title}
+            {song.artists && song.artists.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
+                {song.artists.map((artist: Artist) => (
+                  <Link key={artist.id} to={`/artist/${artist.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    {artist.image ? (
+                      <img src={artist.image} alt={artist.name} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                        <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ fill: 'rgba(255,255,255,0.7)' }}>
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </div>
+                    )}
+                    <span className="font-semibold text-[15px]" style={{ color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>{artist.name}</span>
                   </Link>
-                </p>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
+
+            {song.album && (
+              <p className="text-[13px]" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+                From{' '}
+                <Link to={`/album/${song.album.id}`} className="font-semibold hover:underline" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  {song.album.title}
+                </Link>
+              </p>
+            )}
           </div>
         </div>
       </div>
