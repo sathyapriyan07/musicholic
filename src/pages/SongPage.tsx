@@ -44,7 +44,13 @@ export default function SongPage() {
           if (albumData) album = albumData
         }
 
-        setSong({ ...songData, artists, album } as Song)
+        const { data: songArtistsData } = await supabase
+          .from('song_artists')
+          .select('*, artist:artists(id, name, image)')
+          .eq('song_id', id)
+          .order('position', { ascending: true })
+
+        setSong({ ...songData, artists, album, song_artists: songArtistsData || [] } as Song)
 
         if (artistIds.length > 0) {
           const related = await fetchSongsWithArtists({
@@ -172,6 +178,32 @@ export default function SongPage() {
           <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Preview</p>
           <div className="max-w-2xl">
             <YouTubeEmbed url={song.youtube_embed_url} />
+          </div>
+        </div>
+      )}
+
+      {/* Credits */}
+      {song.song_artists && song.song_artists.length > 0 && (
+        <div className="px-5 lg:px-8 mb-8">
+          <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Credits</p>
+          <div className="space-y-3">
+            {song.song_artists.map((sa: any) => (
+              <Link key={sa.id} to={`/artist/${sa.artist_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                {sa.artist?.image ? (
+                  <img src={sa.artist.image} alt={sa.artist.name} className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
+                    <svg viewBox="0 0 24 24" className="w-5 h-5" style={{ fill: 'var(--am-text-3)' }}>
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                  </div>
+                )}
+                <div>
+                  <p className="text-[14px] font-semibold">{sa.artist?.name || 'Unknown Artist'}</p>
+                  <p className="text-[12px]" style={{ color: 'var(--am-text-2)' }}>{sa.role}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       )}

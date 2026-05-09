@@ -13,7 +13,7 @@ export function extractYouTubeId(url: string | null): string | null {
 
 export function getYouTubeEmbedUrl(url: string | null): string | null {
   const id = extractYouTubeId(url)
-  return id ? `https://www.youtube.com/embed/${id}` : null
+  return id ? `https://www.youtube.com/embed/${id}?autoplay=1` : null
 }
 
 export function getYouTubeThumbnail(url: string | null): string | null {
