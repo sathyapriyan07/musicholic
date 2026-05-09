@@ -31,6 +31,7 @@ create table if not exists songs (
   artist_ids uuid[] default '{}',
   album_id uuid references albums(id) on delete set null,
   lyrics text,
+  featured boolean not null default false,
   created_at timestamptz default now()
 );
 

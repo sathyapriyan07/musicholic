@@ -63,6 +63,7 @@ export interface Database {
           youtube_embed_url: string | null
           artist_ids: string[]
           album_id: string | null
+          featured: boolean
           created_at: string
         }
         Insert: {
@@ -72,6 +73,7 @@ export interface Database {
           youtube_embed_url?: string | null
           artist_ids?: string[]
           album_id?: string | null
+          featured?: boolean
           created_at?: string
         }
         Update: {
@@ -81,6 +83,7 @@ export interface Database {
           youtube_embed_url?: string | null
           artist_ids?: string[]
           album_id?: string | null
+          featured?: boolean
           created_at?: string
         }
       }

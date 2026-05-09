@@ -342,6 +342,7 @@ function SongForm({ artists, albums, song, onDone }: {
     }
     return song?.artist_ids?.map((id, i) => ({ artistId: id, role: i === 0 ? 'primary' : 'featured', position: i })) || [{ artistId: '', role: 'primary', position: 0 }]
   })
+  const [featured, setFeatured] = useState(song?.featured || false)
   const [albumId, setAlbumId] = useState(song?.album_id || '')
   const [links, setLinks] = useState<{ platform: PlatformKey; url: string }[]>(() =>
     (song?.links || []).map((l: any) => ({ platform: l.platform as PlatformKey, url: l.url }))
@@ -482,7 +483,7 @@ function SongForm({ artists, albums, song, onDone }: {
     if (song) {
       await (supabase.from('songs') as any).update({
         title: title.trim(), cover: cover.trim() || null, youtube_embed_url: youtubeUrl.trim() || null,
-        artist_ids: artistIds, album_id: albumId || null, lyrics: lyrics.trim() || null
+        artist_ids: artistIds, album_id: albumId || null, lyrics: lyrics.trim() || null, featured
       }).eq('id', song.id)
 
       await supabase.from('song_artists').delete().eq('song_id', song.id)
@@ -498,7 +499,7 @@ function SongForm({ artists, albums, song, onDone }: {
     } else {
       const { data } = await (supabase.from('songs') as any).insert({
         title: title.trim(), cover: cover.trim() || null, youtube_embed_url: youtubeUrl.trim() || null,
-        artist_ids: artistIds, album_id: albumId || null, lyrics: lyrics.trim() || null
+        artist_ids: artistIds, album_id: albumId || null, lyrics: lyrics.trim() || null, featured
       }).select().single()
       if (data) {
         for (const [index, sa] of songArtists.filter(sa => sa.artistId).entries()) {
@@ -604,6 +605,11 @@ function SongForm({ artists, albums, song, onDone }: {
           className={`${inputClass} resize-none`} style={inputStyle} onFocus={inputFocus} onBlur={inputBlur}
           placeholder="Enter song lyrics..." />
       </div>
+      <label className="flex items-center gap-2 cursor-pointer select-none">
+        <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)}
+          className="w-4 h-4 rounded accent-[var(--am-accent)]" />
+        <span className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Featured on Homepage</span>
+      </label>
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-[12px] uppercase tracking-wider font-semibold" style={{ color: 'var(--am-text-3)' }}>Artists & Roles</label>

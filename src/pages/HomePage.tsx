@@ -6,6 +6,8 @@ import ArtistCard from '@/components/ArtistCard'
 import AlbumCard from '@/components/AlbumCard'
 import Shelf from '@/components/Shelf'
 import LoadingSpinner from '@/components/LoadingSpinner'
+import YouTubeHeroPlayer from '@/components/YouTubeHeroPlayer'
+import { extractYouTubeId } from '@/lib/utils'
 import type { Song, Artist, Album } from '@/types'
 import { Play } from 'lucide-react'
 
@@ -15,20 +17,27 @@ export default function HomePage() {
   const [artists, setArtists] = useState<Artist[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [loading, setLoading] = useState(true)
+  const [muted, setMuted] = useState(true)
+  const [qualityIndex, setQualityIndex] = useState(0)
+  const [heroIndex, setHeroIndex] = useState(0)
+  const qualityOptions = ['hd2160', 'hd1440', 'hd1080', 'hd720', 'large', 'medium']
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const songs = await fetchSongsWithArtists({ order: { column: 'created_at' }, limit: 20 })
-        const [artistsRes, albumsRes] = await Promise.all([
+        const [featuredRes, recentRes, artistsRes, albumsRes] = await Promise.all([
+          fetchSongsWithArtists({
+            order: { column: 'created_at' },
+            limit: 20,
+            filter: (q) => q.eq('featured', true),
+          }),
+          fetchSongsWithArtists({ order: { column: 'created_at' }, limit: 20 }),
           supabase.from('artists').select('*').order('created_at', { ascending: false }).limit(12),
           supabase.from('albums').select('*, artist:artists(id, name, image)').order('created_at', { ascending: false }).limit(12),
         ])
 
-        if (songs.length) {
-          setFeaturedSongs(songs.slice(0, 6))
-          setRecentSongs(songs)
-        }
+        if (featuredRes.length) setFeaturedSongs(featuredRes)
+        if (recentRes.length) setRecentSongs(recentRes)
         if (artistsRes.data) setArtists(artistsRes.data as unknown as Artist[])
         if (albumsRes.data) setAlbums(albumsRes.data as unknown as Album[])
       } catch (err) {
@@ -39,6 +48,8 @@ export default function HomePage() {
     }
     fetchData()
   }, [])
+
+  const heroSongs = featuredSongs.filter(s => s.youtube_embed_url)
 
   if (loading) return <LoadingSpinner />
 
@@ -61,66 +72,41 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero - Featured Song */}
-      {featuredSongs.length > 0 && (
-        <div className="relative overflow-hidden mb-10">
-          {featuredSongs[0].cover && (
-            <div
-              className="absolute inset-0 scale-110"
-              style={{
-                backgroundImage: `url(${featuredSongs[0].cover})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: 'blur(40px) saturate(1.4)',
-                opacity: 0.35,
-              }}
-            />
-          )}
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--am-bg) 85%)' }} />
-
-          <div className="relative z-10 px-5 lg:px-8 pt-6 pb-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 max-w-3xl">
-              {featuredSongs[0].cover ? (
-                <img src={featuredSongs[0].cover} alt={featuredSongs[0].title} className="w-48 h-48 sm:w-56 sm:h-56 object-cover rounded-2xl shadow-2xl" />
-              ) : (
-                <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl flex items-center justify-center"
-                  style={{ background: 'var(--am-surface-2)' }}>
-                  <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
-                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                  </svg>
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--am-text-3)' }}>Featured</p>
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 leading-tight">{featuredSongs[0].title}</h1>
-                {featuredSongs[0].artists && featuredSongs[0].artists.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-3 mb-4">
-                    {featuredSongs[0].artists.map((artist: Artist) => (
-                      <Link key={artist.id} to={`/artist/${artist.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                        {artist.image ? (
-                          <img src={artist.image} alt={artist.name} className="w-8 h-8 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
-                            <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ fill: 'var(--am-text-3)' }}>
-                              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                            </svg>
-                          </div>
-                        )}
-                        <span className="font-semibold text-[15px]" style={{ color: 'var(--am-accent)' }}>{artist.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-                <Link
-                  to={`/song/${featuredSongs[0].id}`}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white hover:opacity-90"
-                  style={{ background: 'var(--am-accent)' }}
-                >
-                  <Play className="w-4 h-4 fill-white" /> View
-                </Link>
+      {/* Hero banner */}
+      {heroSongs.length > 0 && (
+        <div className="relative w-full aspect-video overflow-hidden mb-8">
+          <YouTubeHeroPlayer
+            key={heroIndex}
+            videoId={extractYouTubeId(heroSongs[heroIndex].youtube_embed_url) || ''}
+            muted={muted}
+            quality={qualityOptions[qualityIndex]}
+            qualityLabel={qualityOptions[qualityIndex] === 'hd2160' ? '4K' : qualityOptions[qualityIndex] === 'hd1440' ? '1440p' : qualityOptions[qualityIndex] === 'hd1080' ? '1080p' : qualityOptions[qualityIndex] === 'hd720' ? '720p' : qualityOptions[qualityIndex] === 'large' ? '480p' : '360p'}
+            startSeconds={0}
+            endSeconds={10}
+            onEnd={() => setHeroIndex((heroIndex + 1) % heroSongs.length)}
+            onToggleMute={() => setMuted(!muted)}
+            onToggleQuality={() => setQualityIndex((qualityIndex + 1) % qualityOptions.length)}
+          />
+          <Link
+            to={`/song/${heroSongs[heroIndex].id}`}
+            className="absolute bottom-6 left-5 lg:left-8 z-10 flex items-center gap-3 hover:opacity-90 transition-opacity"
+          >
+            {heroSongs[heroIndex].cover ? (
+              <img src={heroSongs[heroIndex].cover} alt={heroSongs[heroIndex].title} className="w-14 h-14 rounded-xl object-cover shadow-lg" />
+            ) : (
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+                <svg viewBox="0 0 24 24" className="w-6 h-6" style={{ fill: 'var(--am-text-3)' }}>
+                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                </svg>
               </div>
+            )}
+            <div>
+              <p className="text-sm font-bold leading-tight">{heroSongs[heroIndex].title}</p>
+              <p className="text-[12px] mt-0.5" style={{ color: 'var(--am-text-2)' }}>
+                {heroSongs[heroIndex].artists?.map(a => a.name).join(', ')}
+              </p>
             </div>
-          </div>
+          </Link>
         </div>
       )}
 
