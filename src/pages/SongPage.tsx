@@ -94,49 +94,33 @@ export default function SongPage() {
 
   return (
     <div>
-      {/* Hero with cover as full background */}
-      <div className="relative overflow-hidden">
-        {coverUrl ? (
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url(${coverUrl})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'top',
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0" style={{ background: 'var(--am-surface-2)' }} />
-        )}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 50%, var(--am-bg) 100%)' }} />
-
-        <div className="relative z-10 px-5 lg:px-8 pt-32 pb-12">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 leading-tight" style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{song.title}</h1>
-
+      {/* Cover image + info */}
+      <div className="px-5 lg:px-8 pt-20 pb-8">
+        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6">
+          {coverUrl ? (
+            <img src={coverUrl} alt={song.title} className="w-52 h-52 sm:w-56 sm:h-56 rounded-2xl object-cover shadow-2xl" />
+          ) : (
+            <div className="w-52 h-52 sm:w-56 sm:h-56 rounded-2xl flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+              <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+              </svg>
+            </div>
+          )}
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 leading-tight">{song.title}</h1>
             {song.artists && song.artists.length > 0 && (
-              <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 mb-2">
                 {song.artists.map((artist: Artist) => (
-                  <Link key={artist.id} to={`/artist/${artist.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    {artist.image ? (
-                      <img src={artist.image} alt={artist.name} className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
-                        <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ fill: 'rgba(255,255,255,0.7)' }}>
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
-                      </div>
-                    )}
-                    <span className="font-semibold text-[15px]" style={{ color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>{artist.name}</span>
+                  <Link key={artist.id} to={`/artist/${artist.id}`} className="hover:underline transition-opacity">
+                    <span className="text-[15px] font-semibold" style={{ color: 'var(--am-text-2)' }}>{artist.name}</span>
                   </Link>
                 ))}
               </div>
             )}
-
             {song.album && (
-              <p className="text-[13px]" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+              <p className="text-[13px]" style={{ color: 'var(--am-text-3)' }}>
                 From{' '}
-                <Link to={`/album/${song.album.id}`} className="font-semibold hover:underline" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                <Link to={`/album/${song.album.id}`} className="font-semibold hover:underline" style={{ color: 'var(--am-text-2)' }}>
                   {song.album.title}
                 </Link>
               </p>
