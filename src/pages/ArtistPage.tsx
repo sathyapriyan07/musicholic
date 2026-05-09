@@ -99,15 +99,6 @@ export default function ArtistPage() {
 
         <div className="relative z-10 px-5 lg:px-8 pt-20 pb-12">
           <div className="max-w-3xl mx-auto text-center">
-            {artist.image ? (
-              <img src={artist.image} alt={artist.name} className="w-32 h-32 sm:w-40 sm:h-40 rounded-full object-cover mx-auto mb-4 shadow-2xl ring-4 ring-white/10" />
-            ) : (
-              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--am-surface-2)' }}>
-                <svg viewBox="0 0 24 24" className="w-12 h-12 sm:w-16 sm:h-16" style={{ fill: 'var(--am-text-3)' }}>
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
-              </div>
-            )}
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 leading-tight" style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{artist.name}</h1>
             <p className="text-[14px] mb-3" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
               {songs.length} {songs.length === 1 ? 'song' : 'songs'}
@@ -146,11 +137,14 @@ export default function ArtistPage() {
       )}
 
       {songs.length > 0 && (
-        <Shelf title="Songs">
-          {songs.map((song) => (
-            <SongCard key={song.id} song={song} />
-          ))}
-        </Shelf>
+        <div className="mb-10 px-5 lg:px-8">
+          <h2 className="text-[22px] font-bold tracking-tight mb-4">Songs</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6">
+            {songs.map((song) => (
+              <SongCard key={song.id} song={song} fill />
+            ))}
+          </div>
+        </div>
       )}
 
       {albums.length > 0 && (

@@ -85,7 +85,7 @@ export const PLATFORM_CONFIG: Record<PlatformKey, { name: string; color: string;
   youtube_music: { name: 'YouTube Music', color: '#FF0000', logo: '/Youtube_Music.png' },
   apple_music: { name: 'Apple Music', color: '#FA243C', logo: '/Apple_Music.png' },
   jiosaavn: { name: 'JioSaavn', color: '#51C457', logo: '/jiosaavn.png' },
-  gaana: { name: 'Gaana', color: '#F37021', logo: '' },
+  gaana: { name: 'Gaana', color: '#F37021', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/04/Gaana_logo.svg' },
   amazon_music: { name: 'Amazon Music', color: '#00A8E1', logo: 'https://wallpapers.com/images/hd/amazon-music-logo-ealtealc1quuokje-2.jpg' },
 }
 
@@ -94,7 +94,7 @@ export const ARTIST_PLATFORM_CONFIG: Record<ArtistPlatformKey, { name: string; c
   youtube_music: { name: 'YouTube Music', color: '#FF0000', logo: '/Youtube_Music.png' },
   apple_music: { name: 'Apple Music', color: '#FA243C', logo: '/Apple_Music.png' },
   jiosaavn: { name: 'JioSaavn', color: '#51C457', logo: '/jiosaavn.png' },
-  gaana: { name: 'Gaana', color: '#F37021', logo: '' },
+  gaana: { name: 'Gaana', color: '#F37021', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/04/Gaana_logo.svg' },
   amazon_music: { name: 'Amazon Music', color: '#00A8E1', logo: 'https://wallpapers.com/images/hd/amazon-music-logo-ealtealc1quuokje-2.jpg' },
   youtube: { name: 'YouTube', color: '#FF0000', logo: '/Youtube_logo.png' },
 }

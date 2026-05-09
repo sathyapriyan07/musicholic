@@ -141,7 +141,7 @@ export default function SongPage() {
       {song.links && song.links.length > 0 && (
         <div className="px-5 lg:px-8 mb-8">
           <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Listen on</p>
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {song.links.map((link: any) => {
               const config = PLATFORM_CONFIG[link.platform as PlatformKey]
               return (
@@ -150,7 +150,7 @@ export default function SongPage() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-full text-[11px] font-semibold transition-opacity hover:opacity-80 bg-transparent border"
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-full text-[11px] font-semibold transition-opacity hover:opacity-80 bg-transparent border w-full"
                   style={{ borderColor: 'var(--am-border)' }}
                 >
                   {config?.logo && (

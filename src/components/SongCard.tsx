@@ -8,6 +8,7 @@ interface SongCardProps {
   song: Song
   size?: 'sm' | 'md' | 'lg'
   showArtists?: boolean
+  fill?: boolean
 }
 
 const sizeMap = {
@@ -16,23 +17,23 @@ const sizeMap = {
   lg: { card: 'w-36', img: 'w-36 aspect-square' },
 }
 
-export default function SongCard({ song, size = 'md', showArtists = true }: SongCardProps) {
+export default function SongCard({ song, size = 'md', showArtists = true, fill }: SongCardProps) {
   const s = sizeMap[size]
   const imageUrl = song.cover || getYouTubeThumbnail(song.youtube_embed_url)
 
   return (
-    <Link to={`/song/${song.id}`} className={cn('group flex-shrink-0 cursor-pointer', s.card)}>
+    <Link to={`/song/${song.id}`} className={cn('group cursor-pointer', fill ? 'w-full' : 'flex-shrink-0', fill ? '' : s.card)}>
       <div className="relative overflow-hidden rounded-xl transition-transform duration-200 group-hover:scale-[1.03]"
         style={{ background: 'var(--am-surface-2)' }}>
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={song.title}
-            className={cn('w-full h-full object-cover', s.img)}
+            className={cn('w-full h-full object-cover', fill ? 'aspect-square' : s.img)}
             loading="lazy"
           />
         ) : (
-          <div className={cn('w-full flex items-center justify-center', s.img)}>
+          <div className={cn('w-full flex items-center justify-center', fill ? 'aspect-square' : s.img)}>
             <svg viewBox="0 0 24 24" className="w-1/3 h-1/3" style={{ fill: 'var(--am-text-3)' }}>
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
             </svg>
