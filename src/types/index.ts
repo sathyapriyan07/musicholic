@@ -52,7 +52,7 @@ export interface SongArtist {
   id: string
   song_id: string
   artist_id: string
-  role: 'primary' | 'featured' | 'producer' | 'composer' | 'lyricist'
+  role: string
   position: number
   created_at: string
   artist?: Artist

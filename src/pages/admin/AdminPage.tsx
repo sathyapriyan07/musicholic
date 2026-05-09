@@ -623,14 +623,9 @@ function SongForm({ artists, albums, song, onDone }: {
                 label="Artist"
               />
             </div>
-            <select value={sa.role} onChange={(e) => updateArtist(i, 'role', e.target.value)}
-              className="rounded-xl px-3 py-2 text-[13px] focus:outline-none" style={inputStyle}>
-              <option value="primary">Primary</option>
-              <option value="featured">Featured</option>
-              <option value="producer">Producer</option>
-              <option value="composer">Composer</option>
-              <option value="lyricist">Lyricist</option>
-            </select>
+            <input value={sa.role} onChange={(e) => updateArtist(i, 'role', e.target.value)}
+              className="rounded-xl px-3 py-2 text-[13px] focus:outline-none w-28" style={inputStyle}
+              placeholder="Role" />
             {songArtists.length > 1 && (
               <button type="button" onClick={() => removeArtist(i)} className="p-2 text-red-400 hover:text-red-300">
                 <Trash2 className="w-4 h-4" />
