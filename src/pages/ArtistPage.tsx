@@ -19,6 +19,7 @@ export default function ArtistPage() {
   const [artistLinks, setArtistLinks] = useState<ArtistLink[]>([])
   const [relatedArtists, setRelatedArtists] = useState<Artist[]>([])
   const [loading, setLoading] = useState(true)
+  const [visibleSongs, setVisibleSongs] = useState(9)
 
   useEffect(() => {
     async function fetchData() {
@@ -139,11 +140,22 @@ export default function ArtistPage() {
       {songs.length > 0 && (
         <div className="mb-10 px-5 lg:px-8">
           <h2 className="text-[22px] font-bold tracking-tight mb-4">Songs</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6">
-            {songs.map((song) => (
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6">
+            {songs.slice(0, visibleSongs).map((song) => (
               <SongCard key={song.id} song={song} fill />
             ))}
           </div>
+          {visibleSongs < songs.length && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={() => setVisibleSongs((prev) => prev + 9)}
+                className="px-6 py-2.5 rounded-full text-[13px] font-semibold transition-opacity hover:opacity-80"
+                style={{ background: 'var(--am-accent)', color: '#fff' }}
+              >
+                View More
+              </button>
+            </div>
+          )}
         </div>
       )}
 
