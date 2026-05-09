@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { Volume2, VolumeX } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Volume2, VolumeX, Play, Pause } from 'lucide-react'
 
 declare global {
   interface Window {
@@ -21,6 +21,7 @@ export default function YouTubeHeroPlayer({ videoId, muted, quality, qualityLabe
   const containerRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<any>(null)
   const apiReady = useRef(false)
+  const [playing, setPlaying] = useState(true)
 
   useEffect(() => {
     if (!window.YT) {
@@ -58,6 +59,9 @@ export default function YouTubeHeroPlayer({ videoId, muted, quality, qualityLabe
               event.target.unMute()
             }
           },
+          onStateChange: (event: any) => {
+            setPlaying(event.data === window.YT.PlayerState.PLAYING)
+          },
         },
       })
     }
@@ -85,11 +89,27 @@ export default function YouTubeHeroPlayer({ videoId, muted, quality, qualityLabe
     playerRef.current?.seekTo(time, true)
   }, [quality])
 
+  function togglePlay() {
+    if (!playerRef.current) return
+    if (playing) {
+      playerRef.current.pauseVideo()
+    } else {
+      playerRef.current.playVideo()
+    }
+  }
+
   return (
     <div className="relative w-full h-full">
       <div ref={containerRef} className="absolute inset-0" style={{ transform: 'scale(1.5)' }} />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--am-bg) 0%, transparent 40%)' }} />
       <div className="absolute bottom-4 right-4 z-10 flex gap-2">
+        <button
+          onClick={togglePlay}
+          className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+        >
+          {playing ? <Pause className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white ml-0.5" />}
+        </button>
         <button
           onClick={onToggleMute}
           className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"

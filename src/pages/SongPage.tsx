@@ -19,7 +19,7 @@ export default function SongPage() {
   const [lyricsOpen, setLyricsOpen] = useState(false)
   const [muted, setMuted] = useState(true)
   const [qualityIndex, setQualityIndex] = useState(0)
-  const qualityOptions = ['hd1080', 'hd720', 'large', 'medium']
+  const qualityOptions = ['hd2160', 'hd1440', 'hd1080', 'hd720', 'large', 'medium']
 
   useEffect(() => {
     async function fetchSong() {
@@ -105,7 +105,7 @@ export default function SongPage() {
             videoId={extractYouTubeId(song.youtube_embed_url) || ''}
             muted={muted}
             quality={qualityOptions[qualityIndex]}
-            qualityLabel={qualityOptions[qualityIndex] === 'hd1080' ? '1080p' : qualityOptions[qualityIndex] === 'hd720' ? '720p' : qualityOptions[qualityIndex] === 'large' ? '480p' : '360p'}
+            qualityLabel={qualityOptions[qualityIndex] === 'hd2160' ? '4K' : qualityOptions[qualityIndex] === 'hd1440' ? '1440p' : qualityOptions[qualityIndex] === 'hd1080' ? '1080p' : qualityOptions[qualityIndex] === 'hd720' ? '720p' : qualityOptions[qualityIndex] === 'large' ? '480p' : '360p'}
             onToggleMute={() => setMuted(!muted)}
             onToggleQuality={() => setQualityIndex((qualityIndex + 1) % qualityOptions.length)}
           />
