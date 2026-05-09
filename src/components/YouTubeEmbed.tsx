@@ -3,10 +3,11 @@ import { getYouTubeEmbedUrl } from '@/lib/utils'
 interface YouTubeEmbedProps {
   url: string | null
   className?: string
+  autoplay?: boolean
 }
 
-export default function YouTubeEmbed({ url, className }: YouTubeEmbedProps) {
-  const embedUrl = getYouTubeEmbedUrl(url)
+export default function YouTubeEmbed({ url, className, autoplay }: YouTubeEmbedProps) {
+  const embedUrl = getYouTubeEmbedUrl(url, autoplay)
 
   if (!embedUrl) {
     return (

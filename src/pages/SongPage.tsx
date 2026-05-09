@@ -4,7 +4,7 @@ import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import YouTubeEmbed from '@/components/YouTubeEmbed'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import SongCard from '@/components/SongCard'
-import { getYouTubeThumbnail } from '@/lib/utils'
+import { getYouTubeThumbnail, getYouTubeEmbedUrl } from '@/lib/utils'
 import type { Song, Artist, PlatformKey } from '@/types'
 import { PLATFORM_CONFIG } from '@/types'
 import { ChevronDown } from 'lucide-react'
@@ -94,14 +94,30 @@ export default function SongPage() {
 
   return (
     <div>
+      {/* Hero banner */}
+      {song.youtube_embed_url && (
+        <div className="relative w-full aspect-video overflow-hidden">
+          <div className="absolute inset-0" style={{ transform: 'scale(1.5)' }}>
+            <iframe
+              src={(getYouTubeEmbedUrl(song.youtube_embed_url, true) || '').replace('autoplay=1', 'autoplay=1&controls=0')}
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--am-bg) 0%, transparent 40%)' }} />
+        </div>
+      )}
+
       {/* Cover image + info */}
-      <div className="px-5 lg:px-8 pt-20 pb-8">
+      <div className="px-5 lg:px-8 pt-6 pb-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6">
           {coverUrl ? (
-            <img src={coverUrl} alt={song.title} className="w-52 h-52 sm:w-56 sm:h-56 rounded-2xl object-cover shadow-2xl" />
+            <img src={coverUrl} alt={song.title} className="w-40 h-40 sm:w-44 sm:h-44 rounded-2xl object-cover shadow-2xl" />
           ) : (
-            <div className="w-52 h-52 sm:w-56 sm:h-56 rounded-2xl flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
-              <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
+            <div className="w-40 h-40 sm:w-44 sm:h-44 rounded-2xl flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+              <svg viewBox="0 0 24 24" className="w-12 h-12" style={{ fill: 'var(--am-text-3)' }}>
                 <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
               </svg>
             </div>

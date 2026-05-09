@@ -11,9 +11,10 @@ export function extractYouTubeId(url: string | null): string | null {
   return match?.[1] || null
 }
 
-export function getYouTubeEmbedUrl(url: string | null): string | null {
+export function getYouTubeEmbedUrl(url: string | null, autoplay?: boolean): string | null {
   const id = extractYouTubeId(url)
-  return id ? `https://www.youtube.com/embed/${id}?autoplay=1` : null
+  if (!id) return null
+  return autoplay ? `https://www.youtube.com/embed/${id}?autoplay=1` : `https://www.youtube.com/embed/${id}`
 }
 
 export function getYouTubeThumbnail(url: string | null): string | null {
