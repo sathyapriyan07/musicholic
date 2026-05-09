@@ -18,7 +18,8 @@ export default function SongPage() {
   const [loading, setLoading] = useState(true)
   const [lyricsOpen, setLyricsOpen] = useState(false)
   const [muted, setMuted] = useState(true)
-  const [quality, setQuality] = useState<'hd1080' | 'hd720'>('hd1080')
+  const [qualityIndex, setQualityIndex] = useState(0)
+  const qualityOptions = ['hd1080', 'hd720', 'large', 'medium']
 
   useEffect(() => {
     async function fetchSong() {
@@ -103,9 +104,10 @@ export default function SongPage() {
           <YouTubeHeroPlayer
             videoId={extractYouTubeId(song.youtube_embed_url) || ''}
             muted={muted}
-            quality={quality}
+            quality={qualityOptions[qualityIndex]}
+            qualityLabel={qualityOptions[qualityIndex] === 'hd1080' ? '1080p' : qualityOptions[qualityIndex] === 'hd720' ? '720p' : qualityOptions[qualityIndex] === 'large' ? '480p' : '360p'}
             onToggleMute={() => setMuted(!muted)}
-            onToggleQuality={() => setQuality(quality === 'hd1080' ? 'hd720' : 'hd1080')}
+            onToggleQuality={() => setQualityIndex((qualityIndex + 1) % qualityOptions.length)}
           />
         </div>
       )}
@@ -114,10 +116,10 @@ export default function SongPage() {
       <div className="px-5 lg:px-8 pt-6 pb-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6">
           {coverUrl ? (
-            <img src={coverUrl} alt={song.title} className="w-40 h-40 sm:w-44 sm:h-44 rounded-2xl object-cover shadow-2xl" />
+            <img src={coverUrl} alt={song.title} className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover shadow-2xl" />
           ) : (
-            <div className="w-40 h-40 sm:w-44 sm:h-44 rounded-2xl flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
-              <svg viewBox="0 0 24 24" className="w-12 h-12" style={{ fill: 'var(--am-text-3)' }}>
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+              <svg viewBox="0 0 24 24" className="w-10 h-10" style={{ fill: 'var(--am-text-3)' }}>
                 <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
               </svg>
             </div>

@@ -12,11 +12,12 @@ interface YouTubeHeroPlayerProps {
   videoId: string
   muted: boolean
   quality: string
+  qualityLabel: string
   onToggleMute: () => void
   onToggleQuality: () => void
 }
 
-export default function YouTubeHeroPlayer({ videoId, muted, quality, onToggleMute, onToggleQuality }: YouTubeHeroPlayerProps) {
+export default function YouTubeHeroPlayer({ videoId, muted, quality, qualityLabel, onToggleMute, onToggleQuality }: YouTubeHeroPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<any>(null)
   const apiReady = useRef(false)
@@ -101,7 +102,7 @@ export default function YouTubeHeroPlayer({ videoId, muted, quality, onToggleMut
           className="px-3 h-9 rounded-full flex items-center justify-center text-[11px] font-semibold transition-opacity hover:opacity-80"
           style={{ background: 'rgba(0,0,0,0.6)' }}
         >
-          <span className="text-white">{quality === 'hd1080' ? '1080p' : '720p'}</span>
+          <span className="text-white">{qualityLabel}</span>
         </button>
       </div>
     </div>
