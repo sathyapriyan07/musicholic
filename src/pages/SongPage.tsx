@@ -125,7 +125,7 @@ export default function SongPage() {
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1 leading-tight truncate">{song.title}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1 leading-tight">{song.title}</h1>
             {song.artists && song.artists.length > 0 && (
               <div className="flex flex-wrap items-center gap-x-3">
                 {song.artists.map((artist: Artist) => (
@@ -138,22 +138,9 @@ export default function SongPage() {
           </div>
         </div>
         {song.album && (
-          <div className="mt-6 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
-              {song.album.cover ? (
-                <img src={song.album.cover} alt={song.album.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" className="w-5 h-5" style={{ fill: 'var(--am-text-3)' }}>
-                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                  </svg>
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: 'var(--am-text-3)' }}>Album</p>
-              <Link to={`/album/${song.album.id}`} className="text-[14px] font-semibold hover:underline">{song.album.title}</Link>
-            </div>
+          <div className="mt-6">
+            <p className="text-[11px] uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--am-text-3)' }}>Album</p>
+            <Link to={`/album/${song.album.id}`} className="text-[14px] font-semibold hover:underline">{song.album.title}</Link>
           </div>
         )}
       </div>
