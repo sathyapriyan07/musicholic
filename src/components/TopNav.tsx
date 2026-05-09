@@ -57,7 +57,7 @@ export default function TopNav() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--am-accent)' }}>
               <Music2 className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[15px] font-semibold tracking-tight hidden sm:block">Musicholic</span>
+            <span className="text-lg font-normal tracking-tight hidden sm:block" style={{ fontFamily: "'Jersey 10', sans-serif" }}>Musicholic</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -198,7 +198,7 @@ export default function TopNav() {
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--am-accent)' }}>
                   <Music2 className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-[15px] font-semibold">Musicholic</span>
+                <span className="text-lg font-normal" style={{ fontFamily: "'Jersey 10', sans-serif" }}>Musicholic</span>
               </Link>
               <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 text-[var(--am-text-2)]">
                 <X className="w-5 h-5" />

@@ -34,7 +34,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: 'var(--am-accent)' }}>
               <Music2 className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight">Musicholic</span>
+            <span className="text-2xl font-normal tracking-tight" style={{ fontFamily: "'Jersey 10', sans-serif" }}>Musicholic</span>
           </Link>
           <h1 className="text-[28px] font-bold tracking-tight mb-1">
             {isSignUp ? 'Create account' : 'Welcome back'}

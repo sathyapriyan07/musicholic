@@ -7,6 +7,7 @@ import SongCard from '@/components/SongCard'
 import { getYouTubeThumbnail } from '@/lib/utils'
 import type { Song, Artist, PlatformKey } from '@/types'
 import { PLATFORM_CONFIG } from '@/types'
+import { ChevronDown } from 'lucide-react'
 
 export default function SongPage() {
   const { id } = useParams<{ id: string }>()
@@ -14,6 +15,7 @@ export default function SongPage() {
   const [relatedSongs, setRelatedSongs] = useState<Song[]>([])
   const [albumSongs, setAlbumSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)
+  const [lyricsOpen, setLyricsOpen] = useState(false)
 
   useEffect(() => {
     async function fetchSong() {
@@ -177,10 +179,30 @@ export default function SongPage() {
       {/* Lyrics */}
       {song.lyrics && (
         <div className="px-5 lg:px-8 mb-10">
-          <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Lyrics</p>
-          <div className="max-w-2xl rounded-2xl p-6 whitespace-pre-wrap text-[14px] leading-relaxed"
-            style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)', color: 'var(--am-text)' }}>
-            {song.lyrics}
+          <div
+            className="w-full max-w-2xl rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
+            style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}
+            onClick={() => setLyricsOpen(!lyricsOpen)}
+          >
+            <div className="flex items-center justify-between p-5">
+              <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: 'var(--am-text-3)' }}>Lyrics</p>
+              <ChevronDown
+                className="w-4 h-4 transition-transform duration-200"
+                style={{ color: 'var(--am-text-3)', transform: lyricsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              />
+            </div>
+            <div
+              className="px-5 pb-5 transition-all duration-300"
+              style={{
+                maxHeight: lyricsOpen ? '10000px' : '0',
+                opacity: lyricsOpen ? 1 : 0,
+                overflow: 'hidden',
+              }}
+            >
+              <div className="whitespace-pre-wrap text-[14px] leading-relaxed" style={{ color: 'var(--am-text)' }}>
+                {song.lyrics}
+              </div>
+            </div>
           </div>
         </div>
       )}
