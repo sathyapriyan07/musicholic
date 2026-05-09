@@ -100,9 +100,9 @@ export default function HomePage() {
                 </svg>
               </div>
             )}
-            <div>
-              <p className="text-sm font-bold leading-tight">{heroSongs[heroIndex].title}</p>
-              <p className="text-[12px] mt-0.5" style={{ color: 'var(--am-text-2)' }}>
+            <div className="max-w-[calc(100%-140px)]">
+              <p className="text-sm font-bold leading-tight truncate">{heroSongs[heroIndex].title}</p>
+              <p className="text-[12px] mt-0.5 truncate" style={{ color: 'var(--am-text-2)' }}>
                 {heroSongs[heroIndex].artists?.map(a => a.name).join(', ')}
               </p>
             </div>
