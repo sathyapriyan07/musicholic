@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Volume2, VolumeX, Play, Pause } from 'lucide-react'
+import { Volume2, VolumeX, Play, Pause, Sun } from 'lucide-react'
 
 declare global {
   interface Window {
@@ -22,6 +22,8 @@ export default function YouTubeHeroPlayer({ videoId, muted, quality, qualityLabe
   const playerRef = useRef<any>(null)
   const apiReady = useRef(false)
   const [playing, setPlaying] = useState(true)
+  const [brightness, setBrightness] = useState(1)
+  const [showBrightness, setShowBrightness] = useState(false)
 
   useEffect(() => {
     if (!window.YT) {
@@ -100,7 +102,7 @@ export default function YouTubeHeroPlayer({ videoId, muted, quality, qualityLabe
 
   return (
     <div className="relative w-full h-full">
-      <div ref={containerRef} className="absolute inset-0" style={{ transform: 'scale(1.5)' }} />
+      <div ref={containerRef} className="absolute inset-0" style={{ transform: 'scale(1.5)', filter: `brightness(${brightness})` }} />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--am-bg) 0%, transparent 40%)' }} />
       <div className="absolute bottom-4 right-4 z-10 flex gap-2">
         <button
@@ -124,6 +126,32 @@ export default function YouTubeHeroPlayer({ videoId, muted, quality, qualityLabe
         >
           <span className="text-white">{qualityLabel}</span>
         </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowBrightness(!showBrightness)}
+            className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(0,0,0,0.6)' }}
+          >
+            <Sun className="w-4 h-4 text-white" />
+          </button>
+          {showBrightness && (
+            <div
+              className="absolute bottom-full right-0 mb-2 p-3 rounded-xl"
+              style={{ background: 'rgba(0,0,0,0.8)' }}
+            >
+              <input
+                type="range"
+                min="0.3"
+                max="2"
+                step="0.1"
+                value={brightness}
+                onChange={(e) => setBrightness(parseFloat(e.target.value))}
+                className="w-24 h-1 accent-white cursor-pointer"
+                style={{ accentColor: 'white' }}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
