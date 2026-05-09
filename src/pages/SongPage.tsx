@@ -4,10 +4,11 @@ import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import YouTubeEmbed from '@/components/YouTubeEmbed'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import SongCard from '@/components/SongCard'
-import { getYouTubeThumbnail, getYouTubeEmbedUrl } from '@/lib/utils'
+import { getYouTubeThumbnail, extractYouTubeId } from '@/lib/utils'
 import type { Song, Artist, PlatformKey } from '@/types'
 import { PLATFORM_CONFIG } from '@/types'
 import { ChevronDown } from 'lucide-react'
+import YouTubeHeroPlayer from '@/components/YouTubeHeroPlayer'
 
 export default function SongPage() {
   const { id } = useParams<{ id: string }>()
@@ -16,6 +17,8 @@ export default function SongPage() {
   const [albumSongs, setAlbumSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)
   const [lyricsOpen, setLyricsOpen] = useState(false)
+  const [muted, setMuted] = useState(true)
+  const [quality, setQuality] = useState<'hd1080' | 'hd720'>('hd1080')
 
   useEffect(() => {
     async function fetchSong() {
@@ -97,16 +100,13 @@ export default function SongPage() {
       {/* Hero banner */}
       {song.youtube_embed_url && (
         <div className="relative w-full aspect-video overflow-hidden">
-          <div className="absolute inset-0" style={{ transform: 'scale(1.5)' }}>
-            <iframe
-              src={(getYouTubeEmbedUrl(song.youtube_embed_url, true) || '').replace('autoplay=1', 'autoplay=1&controls=0')}
-              title="YouTube video player"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="w-full h-full"
-            />
-          </div>
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--am-bg) 0%, transparent 40%)' }} />
+          <YouTubeHeroPlayer
+            videoId={extractYouTubeId(song.youtube_embed_url) || ''}
+            muted={muted}
+            quality={quality}
+            onToggleMute={() => setMuted(!muted)}
+            onToggleQuality={() => setQuality(quality === 'hd1080' ? 'hd720' : 'hd1080')}
+          />
         </div>
       )}
 
