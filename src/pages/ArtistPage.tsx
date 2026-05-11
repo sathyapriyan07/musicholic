@@ -8,7 +8,9 @@ import FadeInView from '@/components/motion/FadeInView'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
 import ArtistConnections from '@/components/artist/ArtistConnections'
 import { useArtistCollaborators } from '@/components/artist/useCollaborators'
+import MusicUniverse from '@/components/discovery/MusicUniverse'
 import type { Artist, Song, Album, ArtistLink } from '@/types'
+import type { MusicUniverseImage } from '@/components/discovery/MusicUniverse'
 import { ARTIST_PLATFORM_CONFIG } from '@/types'
 
 const platformConfig = ARTIST_PLATFORM_CONFIG
@@ -192,6 +194,38 @@ export default function ArtistPage() {
           </div>
         </FadeInView>
       )}
+
+      {/* Visual Discography */}
+      {albums.length >= 2 && (() => {
+        const discographyImages: MusicUniverseImage[] = songs
+          .filter(s => s.cover)
+          .slice(0, 24)
+          .map(song => ({
+            src: song.cover,
+            alt: song.title,
+            title: song.title,
+            subtitle: song.artists?.map(a => a.name).join(', '),
+            linkTo: `/song/${song.id}`,
+            id: song.id,
+          }))
+        return (
+          <FadeInView>
+            <div className="mb-16">
+              <MusicUniverse
+                images={discographyImages}
+                title="Visual Discography"
+                subtitle="Exploring an artist's musical galaxy"
+                segments={discographyImages.length > 12 ? 12 : discographyImages.length}
+                grayscale
+                fit={0.55}
+                openedImageWidth="300px"
+                openedImageHeight="400px"
+                overlayBlurColor="#0a0a0a"
+              />
+            </div>
+          </FadeInView>
+        )
+      })()}
 
       {/* Songs */}
       {songs.length > 0 && (
