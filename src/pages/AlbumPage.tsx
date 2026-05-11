@@ -8,9 +8,7 @@ import FadeInView from '@/components/motion/FadeInView'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
 import ArtistConnections from '@/components/artist/ArtistConnections'
 import { useAlbumCollaborators } from '@/components/artist/useCollaborators'
-import MusicUniverse from '@/components/discovery/MusicUniverse'
 import type { Album, Song, Artist } from '@/types'
-import type { MusicUniverseImage } from '@/components/discovery/MusicUniverse'
 import { Play } from 'lucide-react'
 import { getYouTubeThumbnail } from '@/lib/utils'
 
@@ -114,38 +112,6 @@ export default function AlbumPage() {
         title="Creative Team"
         subtitle="The composers, singers, and producers behind this album"
       />
-
-      {/* Related Worlds */}
-      {songs.length >= 2 && (() => {
-        const relatedImages: MusicUniverseImage[] = songs
-          .filter(s => s.cover)
-          .slice(0, 20)
-          .map(song => ({
-            src: song.cover,
-            alt: song.title,
-            title: song.title,
-            subtitle: song.artists?.map(a => a.name).join(', '),
-            linkTo: `/song/${song.id}`,
-            id: song.id,
-          }))
-        return (
-          <FadeInView>
-            <div className="mb-8">
-              <MusicUniverse
-                images={relatedImages}
-                title="Related Worlds"
-                subtitle="Similar albums, connected moods, and cinematic soundtrack universes"
-                segments={relatedImages.length > 10 ? 10 : relatedImages.length}
-                grayscale
-                fit={0.5}
-                openedImageWidth="280px"
-                openedImageHeight="380px"
-                overlayBlurColor="#0a0a0a"
-              />
-            </div>
-          </FadeInView>
-        )
-      })()}
 
       {/* Album Moodboard */}
       {songCovers.length >= 3 && (

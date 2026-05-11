@@ -5,17 +5,34 @@ import LoadingSpinner from '@/components/LoadingSpinner'
 import CinematicHero from '@/components/cinematic/CinematicHero'
 import CinematicCard from '@/components/ui/CinematicCard'
 import EditorialDiscovery from '@/components/editorial/EditorialDiscovery'
+import MoodSection from '@/components/editorial/MoodSection'
 import FadeInView from '@/components/motion/FadeInView'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
-import MusicUniverse from '@/components/discovery/MusicUniverse'
 import { extractYouTubeId } from '@/lib/utils'
 import type { Song, Artist, Album } from '@/types'
-import type { MusicUniverseImage } from '@/components/discovery/MusicUniverse'
+
+const MOOD_SECTIONS = [
+  { title: 'Midnight Drive', description: 'Late night vibes for the open road', filter: 'ambient' as const },
+  { title: 'Rainy Tamil Nights', description: 'Melancholic melodies for monsoon evenings', filter: 'rainy' as const },
+  { title: 'Synthwave Dreams', description: 'Retro futuristic electronic soundscapes', filter: 'synth' as const },
+  { title: 'Love Failure Era', description: 'Heartbreak anthems that hit different', filter: 'sad' as const },
+  { title: 'Mass BGM', description: 'Cinematic background scores that elevate moments', filter: 'bgm' as const },
+  { title: 'Neon City Nights', description: 'Urban nightlife energy pulsing through the streets', filter: 'neon' as const },
+]
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
 
 export default function HomePage() {
   const [featuredSongs, setFeaturedSongs] = useState<Song[]>([])
   const [recentSongs, setRecentSongs] = useState<Song[]>([])
-
+  const [allSongs, setAllSongs] = useState<Song[]>([])
   const [artists, setArtists] = useState<Artist[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [loading, setLoading] = useState(true)
@@ -24,19 +41,21 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [featuredRes, recentRes, artistsRes, albumsRes] = await Promise.all([
+        const [featuredRes, recentRes, allRes, artistsRes, albumsRes] = await Promise.all([
           fetchSongsWithArtists({
             order: { column: 'created_at' },
             limit: 20,
             filter: (q) => q.eq('featured', true),
           }),
           fetchSongsWithArtists({ order: { column: 'created_at' }, limit: 20 }),
+          fetchSongsWithArtists({ order: { column: 'created_at' }, limit: 50 }),
           supabase.from('artists').select('*').order('created_at', { ascending: false }).limit(12),
           supabase.from('albums').select('*, artist:artists(id, name, image)').order('created_at', { ascending: false }).limit(12),
         ])
 
         if (featuredRes.length) setFeaturedSongs(featuredRes)
         if (recentRes.length) setRecentSongs(recentRes)
+        if (allRes.length) setAllSongs(allRes)
         if (artistsRes.data) setArtists(artistsRes.data as unknown as Artist[])
         if (albumsRes.data) setAlbums(albumsRes.data as unknown as Album[])
       } catch (err) {
@@ -81,30 +100,6 @@ export default function HomePage() {
           linkTo={`/song/${heroSongs[heroIndex].id}`}
         />
       )}
-
-      {/* Immersive Universe Hero */}
-      {albums.length >= 3 && (() => {
-        const heroUniverseImages: MusicUniverseImage[] = albums.slice(0, 12).map(album => ({
-          src: album.cover,
-          alt: album.title,
-          title: album.title,
-          subtitle: album.artist?.name,
-          linkTo: `/album/${album.id}`,
-          id: album.id,
-        }))
-        return (
-          <MusicUniverse
-            images={heroUniverseImages}
-            hero
-            grayscale
-            segments={12}
-            fit={0.6}
-            openedImageWidth="320px"
-            openedImageHeight="420px"
-            overlayBlurColor="#0a0a0a"
-          />
-        )
-      })()}
 
       {/* Editorial Intro */}
       <FadeInView delay={0.2}>
@@ -166,6 +161,21 @@ export default function HomePage() {
 
       {/* Visual Discovery Section */}
       <EditorialDiscovery />
+
+      {/* Mood Sections */}
+      {allSongs.length > 0 && MOOD_SECTIONS.map((mood) => {
+        const shuffled = shuffleArray(allSongs)
+        const sectionSongs = shuffled.slice(0, 8)
+        return (
+          <MoodSection
+            key={mood.title}
+            title={mood.title}
+            description={mood.description}
+            songs={sectionSongs}
+            slug={mood.title.toLowerCase().replace(/\s+/g, '-')}
+          />
+        )
+      })}
 
       {/* Artists Spotlight */}
       {artists.length > 0 && (
