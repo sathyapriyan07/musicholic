@@ -25,6 +25,7 @@ export interface Song {
   album_id: string | null
   lyrics: string | null
   featured?: boolean
+  show_in_discovery?: boolean
   created_at: string
   artists?: Artist[]
   album?: Album

@@ -32,6 +32,7 @@ create table if not exists songs (
   album_id uuid references albums(id) on delete set null,
   lyrics text,
   featured boolean not null default false,
+  show_in_discovery boolean not null default false,
   created_at timestamptz default now()
 );
 
@@ -149,6 +150,7 @@ create policy "Authenticated users can manage song artists" on song_artists for 
 -- Index for performance
 create index if not exists idx_song_artists_song_id on song_artists(song_id);
 create index if not exists idx_song_artists_artist_id on song_artists(artist_id);
+create index if not exists idx_songs_show_in_discovery on songs(show_in_discovery) where show_in_discovery = true;
 
 -- Storage bucket for artist images
 insert into storage.buckets (id, name, public) values ('artist-images', 'artist-images', true)

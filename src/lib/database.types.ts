@@ -64,6 +64,7 @@ export interface Database {
           artist_ids: string[]
           album_id: string | null
           featured: boolean
+          show_in_discovery: boolean
           created_at: string
         }
         Insert: {
@@ -74,6 +75,7 @@ export interface Database {
           artist_ids?: string[]
           album_id?: string | null
           featured?: boolean
+          show_in_discovery?: boolean
           created_at?: string
         }
         Update: {
@@ -84,6 +86,7 @@ export interface Database {
           artist_ids?: string[]
           album_id?: string | null
           featured?: boolean
+          show_in_discovery?: boolean
           created_at?: string
         }
       }

@@ -11,7 +11,10 @@ export default function EditorialDiscovery() {
 
   useEffect(() => {
     async function load() {
-      const data = await fetchSongsWithArtists({ order: { column: 'created_at' }, limit: 30 })
+      const data = await fetchSongsWithArtists({
+        filter: (q) => q.eq('show_in_discovery', true).order('created_at', { ascending: false }),
+        limit: 50,
+      })
       setSongs(data)
     }
     load()
