@@ -11,10 +11,10 @@
   --color-am-text-2: #a0a0a0;
   --color-am-text-3: #555555;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 :root {
-  /* Apple Music design tokens */
   --am-bg: #0a0a0a;
   --am-surface: #161616;
   --am-surface-2: #1c1c1e;
@@ -31,7 +31,6 @@
   --am-nav-bg: rgba(10, 10, 10, 0.88);
   --am-card-radius: 12px;
 
-  /* Legacy aliases for yt- vars (used in AdminPage selects, inputs) */
   --yt-bg: var(--am-bg);
   --yt-surface: var(--am-surface);
   --yt-surface-hover: var(--am-surface-hover);
@@ -50,6 +49,12 @@
   --yt-chip-active-text: #0f0f0f;
   --yt-search-bg: var(--am-surface-2);
   --yt-search-border: rgba(255, 255, 255, 0.2);
+
+  --cinematic-glow: 0 0 80px rgba(252, 60, 68, 0.15);
+  --cinematic-glow-lg: 0 0 120px rgba(252, 60, 68, 0.1);
+  --editorial-title-size: clamp(2.5rem, 8vw, 6rem);
+  --editorial-title-leading: 0.95;
+  --editorial-title-tracking: -0.03em;
 }
 
 @layer base {
@@ -62,7 +67,11 @@
   html, body, #root {
     height: 100%;
     width: 100%;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+  html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 
   body {
     font-family: var(--font-sans);
@@ -94,12 +103,6 @@
     display: block;
     max-width: 100%;
   }
-
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 @utility scrollbar-hide {
@@ -108,4 +111,26 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+@utility editorial-title {
+  font-size: var(--editorial-title-size);
+  line-height: var(--editorial-title-leading);
+  letter-spacing: var(--editorial-title-tracking);
+  font-weight: 700;
+}
+
+@utility cinematic-gradient {
+  background: linear-gradient(180deg, transparent 0%, rgba(10,10,10,0.4) 40%, var(--am-bg) 100%);
+}
+
+@utility text-glow {
+  text-shadow: 0 0 40px rgba(252, 60, 68, 0.3), 0 0 80px rgba(252, 60, 68, 0.1);
+}
+
+@utility glass-panel {
+  background: rgba(22, 22, 22, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--am-border);
 }

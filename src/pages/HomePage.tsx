@@ -1,43 +1,61 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
-import SongCard from '@/components/SongCard'
-import ArtistCard from '@/components/ArtistCard'
-import AlbumCard from '@/components/AlbumCard'
-import Shelf from '@/components/Shelf'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import YouTubeHeroPlayer from '@/components/YouTubeHeroPlayer'
+import CinematicHero from '@/components/cinematic/CinematicHero'
+import CinematicCard from '@/components/ui/CinematicCard'
+import EditorialDiscovery from '@/components/editorial/EditorialDiscovery'
+import MoodSection from '@/components/editorial/MoodSection'
+import FadeInView from '@/components/motion/FadeInView'
+import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
 import { extractYouTubeId } from '@/lib/utils'
 import type { Song, Artist, Album } from '@/types'
-import { Play } from 'lucide-react'
+
+const MOOD_SECTIONS = [
+  { title: 'Midnight Drive', description: 'Late night vibes for the open road', filter: 'ambient' as const },
+  { title: 'Rainy Tamil Nights', description: 'Melancholic melodies for monsoon evenings', filter: 'rainy' as const },
+  { title: 'Synthwave Dreams', description: 'Retro futuristic electronic soundscapes', filter: 'synth' as const },
+  { title: 'Love Failure Era', description: 'Heartbreak anthems that hit different', filter: 'sad' as const },
+  { title: 'Mass BGM', description: 'Cinematic background scores that elevate moments', filter: 'bgm' as const },
+  { title: 'Neon City Nights', description: 'Urban nightlife energy pulsing through the streets', filter: 'neon' as const },
+]
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
 
 export default function HomePage() {
   const [featuredSongs, setFeaturedSongs] = useState<Song[]>([])
   const [recentSongs, setRecentSongs] = useState<Song[]>([])
+  const [allSongs, setAllSongs] = useState<Song[]>([])
   const [artists, setArtists] = useState<Artist[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [loading, setLoading] = useState(true)
-  const [muted, setMuted] = useState(true)
-  const [qualityIndex, setQualityIndex] = useState(0)
-  const [heroIndex, setHeroIndex] = useState(0)
-  const qualityOptions = ['hd2160', 'hd1440', 'hd1080', 'hd720', 'large', 'medium']
+  const [heroIndex] = useState(0)
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [featuredRes, recentRes, artistsRes, albumsRes] = await Promise.all([
+        const [featuredRes, recentRes, allRes, artistsRes, albumsRes] = await Promise.all([
           fetchSongsWithArtists({
             order: { column: 'created_at' },
             limit: 20,
             filter: (q) => q.eq('featured', true),
           }),
           fetchSongsWithArtists({ order: { column: 'created_at' }, limit: 20 }),
+          fetchSongsWithArtists({ order: { column: 'created_at' }, limit: 50 }),
           supabase.from('artists').select('*').order('created_at', { ascending: false }).limit(12),
           supabase.from('albums').select('*, artist:artists(id, name, image)').order('created_at', { ascending: false }).limit(12),
         ])
 
         if (featuredRes.length) setFeaturedSongs(featuredRes)
         if (recentRes.length) setRecentSongs(recentRes)
+        if (allRes.length) setAllSongs(allRes)
         if (artistsRes.data) setArtists(artistsRes.data as unknown as Artist[])
         if (albumsRes.data) setAlbums(albumsRes.data as unknown as Album[])
       } catch (err) {
@@ -72,122 +90,175 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero banner */}
+      {/* Fullscreen Cinematic Hero */}
       {heroSongs.length > 0 && (
-        <div className="relative w-full aspect-video overflow-hidden mb-8">
-          <YouTubeHeroPlayer
-            key={heroIndex}
-            videoId={extractYouTubeId(heroSongs[heroIndex].youtube_embed_url) || ''}
-            muted={muted}
-            quality={qualityOptions[qualityIndex]}
-            qualityLabel={qualityOptions[qualityIndex] === 'hd2160' ? '4K' : qualityOptions[qualityIndex] === 'hd1440' ? '1440p' : qualityOptions[qualityIndex] === 'hd1080' ? '1080p' : qualityOptions[qualityIndex] === 'hd720' ? '720p' : qualityOptions[qualityIndex] === 'large' ? '480p' : '360p'}
-            startSeconds={0}
-            endSeconds={10}
-            onEnd={() => setHeroIndex((heroIndex + 1) % heroSongs.length)}
-            onToggleMute={() => setMuted(!muted)}
-            onToggleQuality={() => setQualityIndex((qualityIndex + 1) % qualityOptions.length)}
-          />
-          <Link
-            to={`/song/${heroSongs[heroIndex].id}`}
-            className="absolute bottom-6 left-5 lg:left-8 z-10 flex items-center gap-3 hover:opacity-90 transition-opacity"
+        <CinematicHero
+          key={heroIndex}
+          videoId={extractYouTubeId(heroSongs[heroIndex].youtube_embed_url) || ''}
+          title={heroSongs[heroIndex].title}
+          subtitle={heroSongs[heroIndex].artists?.map(a => a.name).join(', ') || ''}
+          linkTo={`/song/${heroSongs[heroIndex].id}`}
+        />
+      )}
+
+      {/* Editorial Intro */}
+      <FadeInView delay={0.2}>
+        <div className="px-5 lg:px-8 py-12 lg:py-16">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-[13px] font-semibold uppercase tracking-[0.2em] mb-3"
+            style={{ color: 'var(--am-accent)' }}
           >
-            {heroSongs[heroIndex].cover ? (
-              <img src={heroSongs[heroIndex].cover} alt={heroSongs[heroIndex].title} className="w-14 h-14 rounded-xl object-cover shadow-lg" />
-            ) : (
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
-                <svg viewBox="0 0 24 24" className="w-6 h-6" style={{ fill: 'var(--am-text-3)' }}>
-                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                </svg>
-              </div>
-            )}
-            <div className="max-w-[calc(100%-140px)]">
-              <p className="text-sm font-bold leading-tight truncate">{heroSongs[heroIndex].title}</p>
-              <p className="text-[12px] mt-0.5 truncate" style={{ color: 'var(--am-text-2)' }}>
-                {heroSongs[heroIndex].artists?.map(a => a.name).join(', ')}
-              </p>
-            </div>
-          </Link>
+            Editorial
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="editorial-title mb-4"
+          >
+            Discover Music
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-[16px] lg:text-[18px] max-w-xl"
+            style={{ color: 'var(--am-text-2)' }}
+          >
+            A cinematic journey through sound, emotion, and storytelling
+          </motion.p>
         </div>
-      )}
+      </FadeInView>
 
-      {/* Page title */}
-      <div className="px-5 lg:px-8 mb-8">
-        <h1 className="text-[32px] font-bold tracking-tight">Listen Now</h1>
-        <p className="text-[14px] mt-1" style={{ color: 'var(--am-text-2)' }}>Your music, always ready</p>
-      </div>
-
-      {/* Featured grid */}
+      {/* Featured Grid - Cinematic Stagger */}
       {featuredSongs.length > 0 && (
-        <div className="px-5 lg:px-8 mb-10">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {featuredSongs.slice(0, 6).map((song) => (
-              <FeaturedSongRow key={song.id} song={song} />
-            ))}
+        <FadeInView delay={0.3}>
+          <div className="px-5 lg:px-8 mb-12">
+            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Featured</h2>
+            <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+              {featuredSongs.slice(0, 10).map((song) => (
+                <StaggerItem key={song.id}>
+                  <CinematicCard
+                    to={`/song/${song.id}`}
+                    image={song.cover}
+                    title={song.title}
+                    subtitle={song.artists?.map(a => a.name).join(', ')}
+                    badge="Featured"
+                    size="lg"
+                  />
+                </StaggerItem>
+              ))}
+            </StaggerGrid>
           </div>
-        </div>
+        </FadeInView>
       )}
 
-      {/* Recently added shelf */}
-      {recentSongs.length > 0 && (
-        <Shelf title="Recently Added" href="/browse">
-          {recentSongs.map((song) => (
-            <SongCard key={song.id} song={song} />
-          ))}
-        </Shelf>
-      )}
+      {/* Visual Discovery Section */}
+      <EditorialDiscovery />
 
-      {/* Artists shelf */}
+      {/* Mood Sections */}
+      {allSongs.length > 0 && MOOD_SECTIONS.map((mood) => {
+        const shuffled = shuffleArray(allSongs)
+        const sectionSongs = shuffled.slice(0, 8)
+        return (
+          <MoodSection
+            key={mood.title}
+            title={mood.title}
+            description={mood.description}
+            songs={sectionSongs}
+            slug={mood.title.toLowerCase().replace(/\s+/g, '-')}
+          />
+        )
+      })}
+
+      {/* Artists Spotlight */}
       {artists.length > 0 && (
-        <Shelf title="Artists">
-          {artists.map((artist) => (
-            <ArtistCard key={artist.id} artist={artist} />
-          ))}
-        </Shelf>
+        <FadeInView>
+          <section className="px-5 lg:px-8 mb-16 lg:mb-24">
+            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Artists</h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+              {artists.map((artist, i) => (
+                <motion.div
+                  key={artist.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.05 }}
+                  className="flex-shrink-0 w-32 group"
+                >
+                  <a href={`/artist/${artist.id}`} className="block">
+                    <motion.div
+                      className="w-32 h-32 rounded-full overflow-hidden mb-3"
+                      style={{ background: 'var(--am-surface-2)' }}
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {artist.image ? (
+                        <img src={artist.image} alt={artist.name} className="w-full h-full object-cover" loading="lazy" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <svg viewBox="0 0 24 24" className="w-10 h-10" style={{ fill: 'var(--am-text-3)' }}>
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          </svg>
+                        </div>
+                      )}
+                    </motion.div>
+                    <p className="text-[13px] font-semibold truncate text-center">{artist.name}</p>
+                  </a>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        </FadeInView>
       )}
 
-      {/* Albums shelf */}
+      {/* Albums */}
       {albums.length > 0 && (
-        <Shelf title="New Releases" href="/browse">
-          {albums.map((album) => (
-            <AlbumCard key={album.id} album={album} />
-          ))}
-        </Shelf>
+        <FadeInView>
+          <section className="px-5 lg:px-8 mb-16 lg:mb-24">
+            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">New Releases</h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+              {albums.map((album, i) => (
+                <CinematicCard
+                  key={album.id}
+                  to={`/album/${album.id}`}
+                  image={album.cover}
+                  title={album.title}
+                  subtitle={album.artist?.name}
+                  index={i}
+                />
+              ))}
+            </div>
+          </section>
+        </FadeInView>
+      )}
+
+      {/* Recently Added */}
+      {recentSongs.length > 0 && (
+        <FadeInView>
+          <section className="px-5 lg:px-8 pb-20 lg:pb-24">
+            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Recently Added</h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+              {recentSongs.slice(0, 15).map((song, i) => (
+                <CinematicCard
+                  key={song.id}
+                  to={`/song/${song.id}`}
+                  image={song.cover}
+                  title={song.title}
+                  subtitle={song.artists?.map(a => a.name).join(', ')}
+                  size="sm"
+                  index={i}
+                />
+              ))}
+            </div>
+          </section>
+        </FadeInView>
       )}
     </div>
-  )
-}
-
-function FeaturedSongRow({ song }: { song: Song }) {
-  return (
-    <Link
-      to={`/song/${song.id}`}
-      className="group flex items-center gap-3 rounded-xl overflow-hidden transition-colors"
-      style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}
-    >
-      {song.cover ? (
-        <img src={song.cover} alt={song.title} className="w-14 h-14 object-cover flex-shrink-0" />
-      ) : (
-        <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center"
-          style={{ background: 'var(--am-surface-2)' }}>
-          <svg viewBox="0 0 24 24" className="w-6 h-6" style={{ fill: 'var(--am-text-3)' }}>
-            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-          </svg>
-        </div>
-      )}
-      <div className="flex-1 min-w-0 py-2 pr-3">
-        <p className="text-[13px] font-semibold truncate">{song.title}</p>
-        {song.artists && (
-          <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--am-text-2)' }}>
-            {song.artists.map(a => a.name).join(', ')}
-          </p>
-        )}
-      </div>
-      <div className="pr-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <div className="w-7 h-7 rounded-full flex items-center justify-center"
-          style={{ background: 'var(--am-accent)' }}>
-          <Play className="w-3.5 h-3.5 fill-white text-white ml-0.5" />
-        </div>
-      </div>
-    </Link>
   )
 }

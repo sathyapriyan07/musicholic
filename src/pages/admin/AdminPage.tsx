@@ -12,8 +12,9 @@ import ITunesImport from './iTunesImport'
 import BulkEdit from './BulkEdit'
 import BulkLinkManager from './BulkLinkManager'
 import SearchableSelect from '@/components/SearchableSelect'
+import EditorialCms from './EditorialCms'
 
-type AdminTab = 'songs' | 'artists' | 'albums' | 'itunes' | 'links'
+type AdminTab = 'songs' | 'artists' | 'albums' | 'itunes' | 'links' | 'editorial'
 
 const inputClass = 'w-full rounded-xl px-4 py-2.5 text-[14px] focus:outline-none transition-colors placeholder-[var(--am-text-3)]'
 const inputStyle = { background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }
@@ -122,6 +123,7 @@ export default function AdminPage() {
     { key: 'albums', label: 'Albums' },
     { key: 'itunes', label: 'iTunes Import' },
     { key: 'links', label: 'Links' },
+    { key: 'editorial', label: 'Editorial' },
   ]
 
   const handleTabChange = (tab: AdminTab) => {
@@ -175,6 +177,9 @@ export default function AdminPage() {
       )}
       {activeTab === 'links' && (
         <BulkLinkManager songs={songs} albums={albums} onSaved={fetchData} />
+      )}
+      {activeTab === 'editorial' && (
+        <EditorialCms />
       )}
 
       {activeTab === 'songs' && filteredSongs.length > 0 && (
