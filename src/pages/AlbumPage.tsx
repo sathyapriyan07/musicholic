@@ -6,6 +6,8 @@ import CinematicCard from '@/components/ui/CinematicCard'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import FadeInView from '@/components/motion/FadeInView'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
+import ArtistConnections from '@/components/artist/ArtistConnections'
+import { useAlbumCollaborators } from '@/components/artist/useCollaborators'
 import type { Album, Song, Artist } from '@/types'
 import { Play } from 'lucide-react'
 import { getYouTubeThumbnail } from '@/lib/utils'
@@ -16,6 +18,7 @@ export default function AlbumPage() {
   const [songs, setSongs] = useState<Song[]>([])
   const [artist, setArtist] = useState<Artist | null>(null)
   const [loading, setLoading] = useState(true)
+  const albumCollaborators = useAlbumCollaborators(id)
 
   useEffect(() => {
     async function fetchData() {
@@ -102,6 +105,13 @@ export default function AlbumPage() {
           </div>
         </FadeInView>
       </div>
+
+      {/* Creative Team */}
+      <ArtistConnections
+        collaborators={albumCollaborators}
+        title="Creative Team"
+        subtitle="The composers, singers, and producers behind this album"
+      />
 
       {/* Album Moodboard */}
       {songCovers.length >= 3 && (

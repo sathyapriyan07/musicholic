@@ -6,6 +6,8 @@ import LoadingSpinner from '@/components/LoadingSpinner'
 import CinematicCard from '@/components/ui/CinematicCard'
 import FadeInView from '@/components/motion/FadeInView'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
+import ArtistConnections from '@/components/artist/ArtistConnections'
+import { useArtistCollaborators } from '@/components/artist/useCollaborators'
 import type { Artist, Song, Album, ArtistLink } from '@/types'
 import { ARTIST_PLATFORM_CONFIG } from '@/types'
 
@@ -20,6 +22,7 @@ export default function ArtistPage() {
   const [relatedArtists, setRelatedArtists] = useState<Artist[]>([])
   const [loading, setLoading] = useState(true)
   const [visibleSongs, setVisibleSongs] = useState(12)
+  const collaborators = useArtistCollaborators(id)
 
   useEffect(() => {
     async function fetchData() {
@@ -42,7 +45,7 @@ export default function ArtistPage() {
       if (artistData) setArtist(artistData as unknown as Artist)
       setSongs(songsData)
       if (albumsData) setAlbums(albumsData as unknown as Album[])
-      if (linksData) setArtistLinks(artistLinks as unknown as ArtistLink[])
+      if (linksData) setArtistLinks(linksData as unknown as ArtistLink[])
 
       if (id) {
         const { data: songArtistsData } = await supabase
@@ -163,6 +166,9 @@ export default function ArtistPage() {
           </div>
         </FadeInView>
       )}
+
+      {/* Creative Universe */}
+      <ArtistConnections collaborators={collaborators} />
 
       {/* Visual Journey - ScrollTiltedGrid */}
       {hasImages.length >= 3 && (
