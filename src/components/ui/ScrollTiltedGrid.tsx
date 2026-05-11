@@ -20,7 +20,7 @@ export default function ScrollTiltedGrid({ images, className = '' }: ScrollTilte
   ]
 
   return (
-    <div ref={containerRef} className={`relative py-20 overflow-hidden ${className}`}>
+    <div ref={containerRef} className={`relative py-12 lg:py-20 overflow-hidden ${className}`}>
       <div className="absolute inset-0" style={{
         background: 'linear-gradient(180deg, transparent 0%, rgba(10,10,10,0.3) 50%, transparent 100%)',
         pointerEvents: 'none',
@@ -48,19 +48,20 @@ function TiltedRow({
   )
 
   const rotate = rowIndex === 1 ? -2 : rowIndex === 2 ? 2 : 0
+  const isLarge = rowIndex === 1
 
   return (
     <motion.div
-      className="flex gap-4 px-8 mb-4"
+      className="flex gap-3 lg:gap-4 px-4 lg:px-8 mb-3 lg:mb-4"
       style={{ x, rotate }}
     >
           {images.map((img) => (
         <motion.div
           key={img.id}
-          className="relative flex-shrink-0 overflow-hidden rounded-2xl"
+          className="relative flex-shrink-0 overflow-hidden rounded-xl lg:rounded-2xl"
           style={{
-            width: rowIndex === 1 ? '220px' : '180px',
-            height: rowIndex === 1 ? '220px' : '180px',
+            width: isLarge ? 'clamp(100px, 20vw, 220px)' : 'clamp(90px, 16vw, 180px)',
+            height: isLarge ? 'clamp(100px, 20vw, 220px)' : 'clamp(90px, 16vw, 180px)',
             aspectRatio: '1',
           }}
           whileHover={{ scale: 1.05, zIndex: 10 }}

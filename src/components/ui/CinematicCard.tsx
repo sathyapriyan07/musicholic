@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Play } from 'lucide-react'
 
 interface CinematicCardProps {
   to: string
@@ -11,12 +10,13 @@ interface CinematicCardProps {
   aspectRatio?: 'square' | 'portrait' | 'landscape'
   size?: 'sm' | 'md' | 'lg'
   index?: number
+  fluid?: boolean
 }
 
 const sizeMap = {
-  sm: { card: 'w-36', img: 'aspect-square' },
-  md: { card: 'w-44', img: 'aspect-square' },
-  lg: { card: 'w-52', img: 'aspect-[3/4]' },
+  sm: { card: 'w-28 sm:w-36', img: 'aspect-square' },
+  md: { card: 'w-36 sm:w-44', img: 'aspect-square' },
+  lg: { card: 'w-40 sm:w-52', img: 'aspect-[3/4]' },
 }
 
 export default function CinematicCard({
@@ -28,9 +28,11 @@ export default function CinematicCard({
   aspectRatio = 'square',
   size = 'md',
   index = 0,
+  fluid,
 }: CinematicCardProps) {
   const s = sizeMap[size]
   const ratioClass = aspectRatio === 'portrait' ? 'aspect-[3/4]' : aspectRatio === 'landscape' ? 'aspect-[4/3]' : 'aspect-square'
+  const widthClass = fluid ? 'w-full min-w-0' : s.card
 
   return (
     <motion.div
@@ -38,7 +40,7 @@ export default function CinematicCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.05, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`${s.card} flex-shrink-0 group`}
+      className={`${widthClass} flex-shrink-0 group`}
     >
       <Link to={to} className="block">
         <motion.div
@@ -67,23 +69,6 @@ export default function CinematicCard({
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             style={{ boxShadow: 'inset 0 0 30px rgba(252,60,68,0.15)' }}
           />
-
-          {/* Hover play button */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100"
-            initial={false}
-            whileHover={{ opacity: 1 }}
-            style={{ background: 'rgba(0,0,0,0.3)' }}
-          >
-            <motion.div
-              className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
-              style={{ background: 'var(--am-accent)' }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Play className="w-5 h-5 fill-white text-white ml-0.5" />
-            </motion.div>
-          </motion.div>
 
           {badge && (
             <div className="absolute top-2 left-2 px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider"

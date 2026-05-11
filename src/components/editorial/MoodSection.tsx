@@ -20,7 +20,7 @@ export default function MoodSection({
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
 
   return (
-    <section ref={ref} className="relative mb-16 lg:mb-24">
+    <section ref={ref} className="relative mb-12 lg:mb-24">
       {/* Background gradient */}
       <div
         className="absolute inset-0 opacity-30 rounded-3xl"
@@ -38,10 +38,10 @@ export default function MoodSection({
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
           className="mb-6"
         >
-          <h2 className="text-[28px] lg:text-[36px] font-bold tracking-tight leading-[1.1]">
+          <h2 className="text-2xl lg:text-[36px] font-bold tracking-tight leading-[1.1]">
             {title}
           </h2>
-          <p className="text-[14px] lg:text-[15px] mt-2 max-w-xl" style={{ color: 'var(--am-text-2)' }}>
+          <p className="text-[13px] lg:text-[15px] mt-1 lg:mt-2 max-w-xl" style={{ color: 'var(--am-text-2)' }}>
             {description}
           </p>
         </motion.div>

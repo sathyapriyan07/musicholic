@@ -103,7 +103,7 @@ export default function HomePage() {
 
       {/* Editorial Intro */}
       <FadeInView delay={0.2}>
-        <div className="px-5 lg:px-8 py-12 lg:py-16">
+        <div className="px-5 lg:px-8 py-10 lg:py-16">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -138,11 +138,11 @@ export default function HomePage() {
       {/* Featured Grid - Cinematic Stagger */}
       {featuredSongs.length > 0 && (
         <FadeInView delay={0.3}>
-          <div className="px-5 lg:px-8 mb-12">
-            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Featured</h2>
-            <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+          <div className="px-5 lg:px-8 mb-10 lg:mb-12">
+            <h2 className="text-[18px] lg:text-[28px] font-bold tracking-tight mb-4 lg:mb-6">Featured</h2>
+            <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4">
               {featuredSongs.slice(0, 10).map((song) => (
-                <StaggerItem key={song.id}>
+                <StaggerItem key={song.id} className="w-full min-w-0">
                   <CinematicCard
                     to={`/song/${song.id}`}
                     image={song.cover}
@@ -150,6 +150,7 @@ export default function HomePage() {
                     subtitle={song.artists?.map(a => a.name).join(', ')}
                     badge="Featured"
                     size="lg"
+                    fluid
                   />
                 </StaggerItem>
               ))}
@@ -179,9 +180,9 @@ export default function HomePage() {
       {/* Artists Spotlight */}
       {artists.length > 0 && (
         <FadeInView>
-          <section className="px-5 lg:px-8 mb-16 lg:mb-24">
-            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Artists</h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          <section className="px-5 lg:px-8 mb-12 lg:mb-24">
+            <h2 className="text-[18px] lg:text-[28px] font-bold tracking-tight mb-4 lg:mb-6">Artists</h2>
+            <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 scrollbar-hide">
               {artists.map((artist, i) => (
                 <motion.div
                   key={artist.id}
@@ -189,11 +190,11 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.05 }}
-                  className="flex-shrink-0 w-32 group"
+                  className="flex-shrink-0 w-20 sm:w-28 lg:w-32 group"
                 >
                   <a href={`/artist/${artist.id}`} className="block">
                     <motion.div
-                      className="w-32 h-32 rounded-full overflow-hidden mb-3"
+                      className="w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden mb-2 lg:mb-3"
                       style={{ background: 'var(--am-surface-2)' }}
                       whileHover={{ scale: 1.05 }}
                       transition={{ duration: 0.3 }}
@@ -220,9 +221,9 @@ export default function HomePage() {
       {/* Albums */}
       {albums.length > 0 && (
         <FadeInView>
-          <section className="px-5 lg:px-8 mb-16 lg:mb-24">
-            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">New Releases</h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          <section className="px-5 lg:px-8 mb-12 lg:mb-24">
+            <h2 className="text-[18px] lg:text-[28px] font-bold tracking-tight mb-4 lg:mb-6">New Releases</h2>
+            <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 scrollbar-hide">
               {albums.map((album, i) => (
                 <CinematicCard
                   key={album.id}
@@ -241,9 +242,9 @@ export default function HomePage() {
       {/* Recently Added */}
       {recentSongs.length > 0 && (
         <FadeInView>
-          <section className="px-5 lg:px-8 pb-20 lg:pb-24">
-            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Recently Added</h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          <section className="px-5 lg:px-8 pb-16 lg:pb-24">
+            <h2 className="text-[18px] lg:text-[28px] font-bold tracking-tight mb-4 lg:mb-6">Recently Added</h2>
+            <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 scrollbar-hide">
               {recentSongs.slice(0, 15).map((song, i) => (
                 <CinematicCard
                   key={song.id}

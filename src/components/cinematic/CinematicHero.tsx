@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Volume2, VolumeX, Play, Pause, ChevronDown } from 'lucide-react'
+import { Volume2, VolumeX, Play, Pause } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 declare global {
@@ -104,23 +104,28 @@ export default function CinematicHero({ videoId, title, subtitle, linkTo }: Cine
   }, [])
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full aspect-video sm:aspect-[4/1] lg:aspect-[16/1] overflow-hidden">
       {/* YouTube Background */}
       <div className="absolute inset-0">
-        <div ref={containerRef} className="absolute inset-0" style={{ transform: 'scale(1.8)', pointerEvents: 'none' }} />
+        <div ref={containerRef} className="absolute inset-0 scale-[1.4] sm:scale-[1.8] lg:scale-[2.5]" style={{ pointerEvents: 'none' }} />
       </div>
 
       {/* Cinematic Overlay Layers */}
       <div className="absolute inset-0" style={{
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.4) 30%, rgba(10,10,10,0.6) 60%, var(--am-bg) 100%)',
+        background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%)',
       }} />
       <div className="absolute inset-0" style={{
-        background: 'radial-gradient(ellipse at center top, rgba(252,60,68,0.08) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse at center, rgba(252,60,68,0.08) 0%, transparent 70%)',
       }} />
-      <div className="absolute inset-0" style={{ backdropFilter: 'blur(2px)' }} />
+      <div className="absolute inset-0" style={{ backdropFilter: 'blur(1.5px)' }} />
+
+      {/* Mobile-only dark overlay for readability */}
+      <div className="absolute inset-0 sm:hidden" style={{
+        background: 'linear-gradient(0deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.3) 100%)',
+      }} />
 
       {/* Ambient Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-20"
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] lg:w-[600px] lg:h-[600px] rounded-full opacity-20"
         style={{ background: 'radial-gradient(circle, rgba(252,60,68,0.15) 0%, transparent 70%)' }}
       />
 
@@ -128,52 +133,54 @@ export default function CinematicHero({ videoId, title, subtitle, linkTo }: Cine
       <AnimatePresence>
         {showInfo && (
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-            className="absolute bottom-[20%] left-8 lg:left-16 z-20 max-w-2xl"
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            className="absolute inset-0 z-20 flex items-center px-5 lg:px-16"
           >
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="text-[13px] font-semibold uppercase tracking-[0.2em] mb-3"
-              style={{ color: 'var(--am-accent)' }}
-            >
-              Featured
-            </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="editorial-title mb-3"
-            >
-              {title}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-lg lg:text-xl font-medium mb-6"
-              style={{ color: 'rgba(255,255,255,0.7)' }}
-            >
-              {subtitle}
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-            >
-              <Link
-                to={linkTo}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-semibold transition-all hover:opacity-90"
-                style={{ background: 'var(--am-accent)', color: '#fff' }}
+            <div className="max-w-xl">
+              <motion.p
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="text-[11px] lg:text-[13px] font-semibold uppercase tracking-[0.2em] mb-2 lg:mb-3"
+                style={{ color: 'var(--am-accent)' }}
               >
-                <Play className="w-4 h-4 fill-white" />
-                Listen Now
-              </Link>
-            </motion.div>
+                Featured
+              </motion.p>
+              <motion.h1
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold tracking-tight leading-[1.1] mb-1 lg:mb-2"
+              >
+                {title}
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="text-sm lg:text-base font-medium mb-3 lg:mb-4"
+                style={{ color: 'rgba(255,255,255,0.7)' }}
+              >
+                {subtitle}
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                <Link
+                  to={linkTo}
+                  className="inline-flex items-center gap-1.5 lg:gap-2 px-4 lg:px-6 py-1.5 lg:py-2.5 rounded-full text-[12px] lg:text-[14px] font-semibold transition-all hover:opacity-90"
+                  style={{ background: 'var(--am-accent)', color: '#fff' }}
+                >
+                  <Play className="w-3 h-3 lg:w-4 lg:h-4 fill-white" />
+                  Listen Now
+                </Link>
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -183,37 +190,22 @@ export default function CinematicHero({ videoId, title, subtitle, linkTo }: Cine
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5 }}
-        className="absolute bottom-8 right-8 z-20 flex gap-2"
+        className="absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2"
       >
         <button
           onClick={togglePlay}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105"
+          className="w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center transition-all hover:scale-105"
           style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' }}
         >
-          {playing ? <Pause className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white ml-0.5" />}
+          {playing ? <Pause className="w-3 h-3 lg:w-4 lg:h-4 text-white" /> : <Play className="w-3 h-3 lg:w-4 lg:h-4 text-white ml-0.5" />}
         </button>
         <button
           onClick={toggleMute}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105"
+          className="w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center transition-all hover:scale-105"
           style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' }}
         >
-          {muted ? <VolumeX className="w-4 h-4 text-white" /> : <Volume2 className="w-4 h-4 text-white" />}
+          {muted ? <VolumeX className="w-3 h-3 lg:w-4 lg:h-4 text-white" /> : <Volume2 className="w-3 h-3 lg:w-4 lg:h-4 text-white" />}
         </button>
-      </motion.div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <ChevronDown className="w-5 h-5" style={{ color: 'var(--am-text-3)' }} />
-        </motion.div>
       </motion.div>
     </div>
   )
