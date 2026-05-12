@@ -14,6 +14,7 @@ interface PlatformLinks {
 export interface Collaborator {
   id: string
   name: string
+  role: string
   relationship: string
   image: string | null
   songsTogether: number
@@ -150,7 +151,7 @@ function CollaboratorCard({
       onMouseEnter={() => onHover(collab.id)}
       onMouseLeave={() => onHover(null)}
       onClick={onClick}
-      className={`group relative text-left cursor-pointer min-w-0 ${compact ? 'w-48 flex-shrink-0' : 'w-full'}`}
+      className={`group relative text-left cursor-pointer min-w-0 ${compact ? 'w-40 flex-shrink-0' : 'w-full'}`}
       whileHover={{ y: -4, transition: { duration: 0.3 } }}
     >
       {/* Card container */}
@@ -207,7 +208,7 @@ function CollaboratorCard({
                 border: `1px solid ${relColor}30`,
               }}
             >
-              {collab.relationship}
+              {collab.role || collab.relationship}
             </span>
           </div>
 

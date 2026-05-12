@@ -129,6 +129,7 @@ export function useArtistCollaborators(artistId: string | undefined): Collaborat
           return {
             id,
             name: entry.name,
+            role: primaryRole || '',
             relationship: getRelationship(primaryRole || ''),
             image: entry.image,
             songsTogether: entry.sharedSongIds.size,
@@ -197,6 +198,7 @@ export function useSongCollaborators(songId: string | undefined): Collaborator[]
         return {
           id: sa.artist_id,
           name: artistData?.name || 'Unknown',
+          role: sa.role || '',
           relationship: getRelationship(sa.role || ''),
           image: artistData?.image || null,
           songsTogether: 0,
@@ -304,6 +306,7 @@ export function useAlbumCollaborators(albumId: string | undefined): Collaborator
           return {
             id,
             name: entry.name,
+            role: primaryRole || '',
             relationship: getRelationship(primaryRole || ''),
             image: entry.image,
             songsTogether: 0,
