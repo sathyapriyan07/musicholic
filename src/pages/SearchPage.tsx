@@ -25,18 +25,12 @@ export default function SearchPage() {
 
   useEffect(() => {
     if (!query.trim()) {
-      async function loadCovers() {
-        const [allSongs, albumsRes] = await Promise.all([
-          fetchSongsWithArtists({ limit: 50 }),
-          supabase.from('albums').select('cover').not('cover', 'is', null).limit(30),
-        ])
-        const songCovers = allSongs.map((s) => s.cover).filter((c): c is string => !!c)
-        const albumCovers = (albumsRes.data || []).map((a: any) => a.cover).filter(Boolean)
-        const all = [...songCovers, ...albumCovers]
-        const repeated = all.length >= 48 ? all : Array.from({ length: 48 }, (_, i) => all[i % all.length] || all[0]).filter(Boolean)
-        setBgCovers(repeated)
-      }
-      loadCovers()
+      fetchSongsWithArtists({ limit: 20 }).then((allSongs) => {
+        const covers = allSongs
+          .map((s) => s.cover)
+          .filter((c): c is string => !!c)
+        setBgCovers(covers)
+      })
     }
   }, [query])
 
@@ -80,11 +74,11 @@ export default function SearchPage() {
 
   if (!query) {
     return (
-      <div className="relative min-h-screen overflow-hidden">
+      <div className="relative h-screen overflow-hidden">
         {/* Collage Background */}
         {bgCovers.length > 0 && (
-          <div className="absolute inset-0 grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6">
-            {bgCovers.slice(0, 48).map((cover, i) => (
+          <div className="absolute inset-0 grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1 overflow-hidden">
+            {bgCovers.slice(0, 24).map((cover, i) => (
               <div
                 key={i}
                 className="relative overflow-hidden"
