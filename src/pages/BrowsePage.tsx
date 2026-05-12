@@ -27,10 +27,10 @@ export default function BrowsePage() {
     async function fetchData() {
       setLoading(true)
       try {
-        const songsData = await fetchSongsWithArtists({ order: { column: 'created_at' }, limit: 50 })
+        const songsData = await fetchSongsWithArtists({ order: { column: 'created_at' } })
         const [artistsRes, albumsRes] = await Promise.all([
-          supabase.from('artists').select('*').order('name', { ascending: true }).limit(50),
-          supabase.from('albums').select('*, artist:artists(id, name, image)').order('created_at', { ascending: false }).limit(50),
+          supabase.from('artists').select('*').order('name', { ascending: true }),
+          supabase.from('albums').select('*, artist:artists(id, name, image)').order('created_at', { ascending: false }),
         ])
         setSongs(songsData)
         if (artistsRes.data) setArtists(artistsRes.data as unknown as Artist[])
