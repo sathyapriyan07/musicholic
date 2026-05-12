@@ -17,21 +17,9 @@ export default function SearchPage() {
   const [artists, setArtists] = useState<Artist[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [loading, setLoading] = useState(false)
-  const [bgCovers, setBgCovers] = useState<string[]>([])
 
   useEffect(() => {
     setInput(query)
-  }, [query])
-
-  useEffect(() => {
-    if (!query.trim()) {
-      fetchSongsWithArtists({ limit: 20 }).then((allSongs) => {
-        const covers = allSongs
-          .map((s) => s.cover)
-          .filter((c): c is string => !!c)
-        setBgCovers(covers)
-      })
-    }
   }, [query])
 
   useEffect(() => {
@@ -74,62 +62,29 @@ export default function SearchPage() {
 
   if (!query) {
     return (
-      <div className="relative h-screen overflow-hidden">
-        {/* Collage Background */}
-        {bgCovers.length > 0 && (
-          <div className="absolute inset-0 grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1 overflow-hidden">
-            {bgCovers.slice(0, 24).map((cover, i) => (
-              <div
-                key={i}
-                className="relative overflow-hidden"
-                style={{ aspectRatio: i % 3 === 0 ? '2/3' : '1' }}
-              >
-                <img
-                  src={cover}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            ))}
+      <FadeInView>
+        <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
+            style={{ background: 'var(--am-surface-2)' }}>
+            <Search className="w-7 h-7" style={{ color: 'var(--am-text-3)' }} />
           </div>
-        )}
-        {/* Dark overlays */}
-        <div className="absolute inset-0" style={{
-          background: 'linear-gradient(180deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.6) 50%, rgba(10,10,10,0.95) 100%)',
-        }} />
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse at center, transparent 0%, rgba(10,10,10,0.4) 100%)',
-        }} />
-
-        {/* Content */}
-        <FadeInView>
-          <div className="relative flex flex-col items-center justify-center min-h-screen text-center px-6">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
-              style={{ background: 'rgba(252,60,68,0.15)', backdropFilter: 'blur(12px)' }}>
-              <Search className="w-7 h-7" style={{ color: 'var(--am-accent)' }} />
+          <h1 className="editorial-title mb-6">Search</h1>
+          <form onSubmit={handleSubmit} className="w-full max-w-md">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--am-text-3)' }} />
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Search songs, artists, albums..."
+                className="w-full h-12 pl-12 pr-4 rounded-full text-[15px] outline-none transition-all duration-200 focus:ring-2 focus:ring-[var(--am-accent)]"
+                style={{ background: 'var(--am-surface-2)', color: 'var(--am-text)' }}
+              />
             </div>
-            <h1 className="editorial-title mb-6 text-glow">Search</h1>
-            <form onSubmit={handleSubmit} className="w-full max-w-md">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--am-text-3)' }} />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Search songs, artists, albums..."
-                  className="w-full h-12 pl-12 pr-4 rounded-full text-[15px] outline-none transition-all duration-200 focus:ring-2 focus:ring-[var(--am-accent)]"
-                  style={{ background: 'rgba(28,28,30,0.8)', backdropFilter: 'blur(12px)', color: 'var(--am-text)', border: '1px solid var(--am-border)' }}
-                />
-              </div>
-            </form>
-            <p className="text-[13px] mt-6" style={{ color: 'var(--am-text-2)' }}>
-              {bgCovers.length} songs in your library
-            </p>
-          </div>
-        </FadeInView>
-      </div>
+          </form>
+        </div>
+      </FadeInView>
     )
   }
 
