@@ -28,7 +28,7 @@
   --am-text-3: #555555;
   --am-border: rgba(255, 255, 255, 0.08);
   --am-divider: rgba(255, 255, 255, 0.05);
-  --am-nav-bg: rgba(10, 10, 10, 0.88);
+  --am-nav-bg: #0a0a0a;
   --am-card-radius: 12px;
 
   --yt-bg: var(--am-bg);

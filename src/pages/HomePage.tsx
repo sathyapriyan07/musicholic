@@ -2,12 +2,10 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import CinematicHero from '@/components/cinematic/CinematicHero'
 import CinematicCard from '@/components/ui/CinematicCard'
 import EditorialDiscovery from '@/components/editorial/EditorialDiscovery'
 import FadeInView from '@/components/motion/FadeInView'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
-import { extractYouTubeId } from '@/lib/utils'
 import type { Song, Artist, Album } from '@/types'
 
 export default function HomePage() {
@@ -16,7 +14,6 @@ export default function HomePage() {
   const [artists, setArtists] = useState<Artist[]>([])
   const [albums, setAlbums] = useState<Album[]>([])
   const [loading, setLoading] = useState(true)
-  const [heroIndex] = useState(0)
 
   useEffect(() => {
     async function fetchData() {
@@ -45,8 +42,6 @@ export default function HomePage() {
     fetchData()
   }, [])
 
-  const heroSongs = featuredSongs.filter(s => s.youtube_embed_url)
-
   if (loading) return <LoadingSpinner />
 
   const isEmpty = featuredSongs.length === 0 && artists.length === 0 && albums.length === 0
@@ -68,17 +63,6 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Fullscreen Cinematic Hero */}
-      {heroSongs.length > 0 && (
-        <CinematicHero
-          key={heroIndex}
-          videoId={extractYouTubeId(heroSongs[heroIndex].youtube_embed_url) || ''}
-          title={heroSongs[heroIndex].title}
-          subtitle={heroSongs[heroIndex].artists?.map(a => a.name).join(', ') || ''}
-          linkTo={`/song/${heroSongs[heroIndex].id}`}
-        />
-      )}
-
       {/* Editorial Intro */}
       <FadeInView delay={0.2}>
         <div className="px-5 lg:px-8 py-10 lg:py-16">

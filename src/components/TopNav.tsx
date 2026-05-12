@@ -48,8 +48,8 @@ export default function TopNav() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 h-[52px]"
-        style={{ background: 'var(--am-nav-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid var(--am-border)' }}>
+       <header className="fixed top-0 left-0 right-0 z-50 h-[52px]"
+        style={{ background: 'var(--am-nav-bg)', borderBottom: '1px solid var(--am-border)' }}>
         <div className="flex items-center h-full px-4 gap-3 max-w-[1800px] mx-auto">
 
           {/* Logo */}
