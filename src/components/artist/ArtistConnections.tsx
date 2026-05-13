@@ -217,7 +217,7 @@ function CollaboratorCard({
             className={`absolute bottom-0 left-0 right-0 p-4 transition-all duration-500 ${compact ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}`}
             style={{ transform: isHovered || compact ? 'translateY(0)' : 'translateY(10px)' }}
           >
-            <p className="text-[15px] font-bold leading-tight mb-0.5">{collab.name}</p>
+            <p className="text-[15px] font-bold leading-tight mb-0.5 text-white">{collab.name}</p>
           </div>
 
           {/* Hover stats overlay */}
@@ -231,7 +231,7 @@ function CollaboratorCard({
               className="space-y-1.5"
               style={{ transform: isHovered ? 'translateY(0)' : 'translateY(10px)' }}
             >
-              <p className="text-[13px] font-semibold leading-tight">{collab.name}</p>
+              <p className="text-[13px] font-semibold leading-tight text-white">{collab.name}</p>
               <div className="flex items-center gap-3 text-[11px]" style={{ color: 'rgba(255,255,255,0.7)' }}>
                 <span className="flex items-center gap-1">
                   <Music className="w-3 h-3" />

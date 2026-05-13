@@ -11,7 +11,7 @@
   --color-am-text-2: #a0a0a0;
   --color-am-text-3: #555555;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
 }
 
 :root {
@@ -29,7 +29,11 @@
   --am-border: rgba(255, 255, 255, 0.08);
   --am-divider: rgba(255, 255, 255, 0.05);
   --am-nav-bg: #0a0a0a;
+  --am-bottom-nav-bg: rgba(10, 10, 10, 0.92);
   --am-card-radius: 12px;
+  --am-overlay: rgba(0, 0, 0, 0.6);
+  --am-cinematic-overlay: rgba(10, 10, 10, 0.4);
+  --am-glass-bg: rgba(22, 22, 22, 0.6);
 
   --yt-bg: var(--am-bg);
   --yt-surface: var(--am-surface);
@@ -55,6 +59,40 @@
   --editorial-title-size: clamp(2.5rem, 8vw, 6rem);
   --editorial-title-leading: 0.95;
   --editorial-title-tracking: -0.03em;
+}
+
+[data-theme="light"] {
+  --am-bg: #f5f5f5;
+  --am-surface: #ffffff;
+  --am-surface-2: #e8e8ea;
+  --am-surface-3: #d4d4d6;
+  --am-surface-hover: #fafafa;
+  --am-text: #0a0a0a;
+  --am-text-2: #555555;
+  --am-text-3: #999999;
+  --am-border: rgba(0, 0, 0, 0.08);
+  --am-divider: rgba(0, 0, 0, 0.05);
+  --am-nav-bg: #ffffff;
+  --am-bottom-nav-bg: rgba(255, 255, 255, 0.92);
+  --am-overlay: rgba(0, 0, 0, 0.3);
+  --am-cinematic-overlay: rgba(255, 255, 255, 0.6);
+  --am-glass-bg: rgba(255, 255, 255, 0.7);
+
+  --color-am-bg: #f5f5f5;
+  --color-am-surface: #ffffff;
+  --color-am-surface-2: #e8e8ea;
+  --color-am-surface-3: #d4d4d6;
+  --color-am-text: #0a0a0a;
+  --color-am-text-2: #555555;
+  --color-am-text-3: #999999;
+
+  --yt-white: #0f0f0f;
+  --yt-chip-active: #0f0f0f;
+  --yt-chip-active-text: #f1f1f1;
+  --yt-search-border: rgba(0, 0, 0, 0.2);
+
+  --cinematic-glow: 0 0 80px rgba(252, 60, 68, 0.08);
+  --cinematic-glow-lg: 0 0 120px rgba(252, 60, 68, 0.05);
 }
 
 @layer base {
@@ -114,6 +152,7 @@
 }
 
 @utility editorial-title {
+  font-family: var(--font-display);
   font-size: var(--editorial-title-size);
   line-height: var(--editorial-title-leading);
   letter-spacing: var(--editorial-title-tracking);
@@ -121,7 +160,7 @@
 }
 
 @utility cinematic-gradient {
-  background: linear-gradient(180deg, transparent 0%, rgba(10,10,10,0.4) 40%, var(--am-bg) 100%);
+  background: linear-gradient(180deg, transparent 0%, var(--am-cinematic-overlay) 40%, var(--am-bg) 100%);
 }
 
 @utility text-glow {
@@ -129,7 +168,7 @@
 }
 
 @utility glass-panel {
-  background: rgba(22, 22, 22, 0.6);
+  background: var(--am-glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--am-border);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
@@ -22,6 +22,8 @@ export default function ArtistPage() {
   const [relatedArtists, setRelatedArtists] = useState<Artist[]>([])
   const [loading, setLoading] = useState(true)
   const [visibleSongs, setVisibleSongs] = useState(12)
+  const [bioExpanded, setBioExpanded] = useState(false)
+  const bioRef = useRef<HTMLParagraphElement>(null)
   const collaborators = useArtistCollaborators(id)
 
   useEffect(() => {
@@ -108,7 +110,7 @@ export default function ArtistPage() {
         }} />
 
         <FadeInView className="relative z-10 h-full flex items-end">
-          <div className="px-5 lg:px-8 pb-16 lg:pb-20 w-full">
+          <div className="px-5 lg:px-8 pb-10 lg:pb-20 w-full">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -133,10 +135,23 @@ export default function ArtistPage() {
       {/* Bio */}
       {artist.bio && (
         <FadeInView>
-          <div className="px-5 lg:px-8 py-8 max-w-3xl">
-            <p className="text-[15px] leading-relaxed" style={{ color: 'var(--am-text-2)' }}>
+          <div className="px-5 lg:px-8 pt-2 pb-8 max-w-3xl">
+            <p
+              ref={bioRef}
+              className={`text-[15px] leading-relaxed ${!bioExpanded ? 'line-clamp-2' : ''}`}
+              style={{ color: 'var(--am-text-2)' }}
+            >
               {artist.bio}
             </p>
+            {artist.bio.length > 150 && (
+              <button
+                onClick={() => setBioExpanded(!bioExpanded)}
+                className="mt-2 text-[13px] font-medium transition-opacity hover:opacity-70"
+                style={{ color: 'var(--am-accent)' }}
+              >
+                {bioExpanded ? 'Show less' : 'Read more'}
+              </button>
+            )}
           </div>
         </FadeInView>
       )}

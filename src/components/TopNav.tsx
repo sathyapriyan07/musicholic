@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Search, User, X, Music2 } from 'lucide-react'
+import { Search, User, X, Music2, Sun, Moon } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTheme } from '@/contexts/ThemeContext'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
@@ -18,6 +19,7 @@ export default function TopNav() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, signOut } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function TopNav() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--am-accent)' }}>
               <Music2 className="w-4 h-4 text-white" />
             </div>
-            <span className="text-lg font-normal tracking-tight hidden sm:block" style={{ fontFamily: "'Jersey 10', sans-serif" }}>Musicholic</span>
+            <span className="text-lg font-bold tracking-tight hidden sm:block" style={{ fontFamily: 'var(--font-display)' }}>Musicholic</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -103,6 +105,15 @@ export default function TopNav() {
             aria-label="Search"
           >
             <Search className="w-5 h-5" />
+          </button>
+
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-1.5 rounded-full text-[var(--am-text-2)] hover:text-white transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
           {/* User menu */}
@@ -163,7 +174,7 @@ export default function TopNav() {
       {/* Mobile search overlay */}
       {mobileSearchOpen && (
         <div className="fixed inset-0 z-[70] md:hidden flex items-start pt-2 px-3"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+          style={{ background: 'var(--am-overlay)', backdropFilter: 'blur(8px)' }}
           onClick={(e) => { if (e.target === e.currentTarget) setMobileSearchOpen(false) }}
         >
           <form onSubmit={handleSearch} className="flex gap-2 w-full">
@@ -198,7 +209,7 @@ export default function TopNav() {
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--am-accent)' }}>
                   <Music2 className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-lg font-normal" style={{ fontFamily: "'Jersey 10', sans-serif" }}>Musicholic</span>
+                <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)' }}>Musicholic</span>
               </Link>
               <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 text-[var(--am-text-2)]">
                 <X className="w-5 h-5" />

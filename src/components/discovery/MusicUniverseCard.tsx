@@ -80,7 +80,7 @@ export default function MusicUniverseCard({
 
           {/* Bottom metadata */}
           <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-6">
-            <p className="text-[17px] lg:text-[21px] font-bold leading-tight mb-1">{title}</p>
+            <p className="text-[17px] lg:text-[21px] font-bold leading-tight mb-1 text-white">{title}</p>
             {subtitle && (
               <p className="text-[13px] lg:text-[14px] font-medium truncate" style={{ color: 'rgba(255,255,255,0.7)' }}>
                 {subtitle}
