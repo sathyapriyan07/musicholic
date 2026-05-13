@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Music, Disc3, Calendar, Mic2 } from 'lucide-react'
+import { Music, Mic2 } from 'lucide-react'
 
 interface PlatformLinks {
   spotify?: string
@@ -159,43 +159,20 @@ function CollaboratorCard({
         {/* Image container */}
         <div className={`relative overflow-hidden ${compact ? 'aspect-[4/5]' : 'aspect-[4/5] lg:aspect-[3/4]'}`}>
           {collab.image ? (
-            <>
-              <img
-                src={collab.image}
-                alt={collab.name}
-                className="w-full h-full object-cover transition-all duration-700 ease-out"
-                style={{
-                  filter: isHovered ? 'grayscale(0%) brightness(1.05)' : 'grayscale(60%) brightness(0.7)',
-                  transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-                }}
-                loading="lazy"
-              />
-              {/* Cinematic gradient overlay */}
-              <div
-                className="absolute inset-0 transition-opacity duration-500"
-                style={{
-                  background: isHovered
-                    ? 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.7) 100%)'
-                    : 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.8) 100%)',
-                }}
-              />
-            </>
+            <img
+              src={collab.image}
+              alt={collab.name}
+              className="w-full h-full object-cover transition-all duration-700 ease-out"
+              style={{
+                transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+              }}
+              loading="lazy"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
               <Mic2 className="w-12 h-12" style={{ color: 'var(--am-text-3)' }} />
             </div>
           )}
-
-          {/* Hover glow */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.4 }}
-            style={{
-              boxShadow: `inset 0 0 60px ${relColor}22, 0 0 40px ${relColor}11`,
-            }}
-          />
 
           {/* Relationship badge */}
           <div className="absolute top-3 left-3">
@@ -211,43 +188,6 @@ function CollaboratorCard({
               {collab.role || collab.relationship}
             </span>
           </div>
-
-          {/* Bottom metadata (always visible on mobile, hover on desktop) */}
-          <div
-            className={`absolute bottom-0 left-0 right-0 p-4 transition-all duration-500 ${compact ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}`}
-            style={{ transform: isHovered || compact ? 'translateY(0)' : 'translateY(10px)' }}
-          >
-            <p className="text-[15px] font-bold leading-tight mb-0.5 text-white">{collab.name}</p>
-          </div>
-
-          {/* Hover stats overlay */}
-          <motion.div
-            className="absolute inset-0 flex flex-col justify-end p-4 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered && !compact ? 1 : 0 }}
-            transition={{ duration: 0.3, delay: isHovered ? 0.1 : 0 }}
-          >
-            <div
-              className="space-y-1.5"
-              style={{ transform: isHovered ? 'translateY(0)' : 'translateY(10px)' }}
-            >
-              <p className="text-[13px] font-semibold leading-tight text-white">{collab.name}</p>
-              <div className="flex items-center gap-3 text-[11px]" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                <span className="flex items-center gap-1">
-                  <Music className="w-3 h-3" />
-                  {collab.songsTogether} songs
-                </span>
-                <span className="flex items-center gap-1">
-                  <Disc3 className="w-3 h-3" />
-                  {collab.albumsTogether} {collab.albumsTogether === 1 ? 'album' : 'albums'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 text-[11px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                <Calendar className="w-3 h-3" />
-                {collab.yearsActive}
-              </div>
-            </div>
-          </motion.div>
         </div>
 
         {/* Info section below image */}
