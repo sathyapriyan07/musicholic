@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import YouTubeEmbed from '@/components/YouTubeEmbed'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import SongCard from '@/components/SongCard'
-import ArtistConnections from '@/components/artist/ArtistConnections'
 import { useSongCollaborators } from '@/components/artist/useCollaborators'
-import { getYouTubeThumbnail, extractYouTubeId } from '@/lib/utils'
+import { getYouTubeThumbnail, extractYouTubeId, cn } from '@/lib/utils'
 import type { Song, Artist, PlatformKey } from '@/types'
 import { PLATFORM_CONFIG } from '@/types'
 import { ChevronDown } from 'lucide-react'
@@ -23,6 +22,8 @@ export default function SongPage() {
   const [muted, setMuted] = useState(true)
   const [qualityIndex, setQualityIndex] = useState(0)
   const qualityOptions = ['hd2160', 'hd1440', 'hd1080', 'hd720', 'large', 'medium']
+  const [activeTab, setActiveTab] = useState('listen')
+  const initialized = useRef(false)
 
   useEffect(() => {
     async function fetchSong() {
@@ -91,6 +92,23 @@ export default function SongPage() {
     }
     fetchSong()
   }, [id])
+
+  useEffect(() => {
+    if (initialized.current || !song) return
+    initialized.current = true
+    const sections = [
+      !!song.album && 'album',
+      song.links && song.links.length > 0 && 'listen',
+      !!song.youtube_embed_url && 'preview',
+      songCollaborators.length > 0 && 'people',
+      !!song.lyrics && 'lyrics',
+      albumSongs.length > 0 && 'album-songs',
+      relatedSongs.length > 0 && 'related',
+    ].filter(Boolean) as string[]
+    if (!sections.includes('listen') && sections.length > 0) {
+      setActiveTab(sections[0])
+    }
+  }, [song, songCollaborators, albumSongs, relatedSongs])
 
   if (loading) return <LoadingSpinner />
   if (!song) return (
@@ -171,18 +189,44 @@ export default function SongPage() {
         </div>
       )}
 
+      {/* Section pills tabs */}
+      <div className="flex gap-1 px-5 lg:px-8 pb-6 overflow-x-auto scrollbar-hide">
+        {[
+          { id: 'album', label: 'Album', show: !!song.album },
+          { id: 'listen', label: 'Listen On', show: !!(song.links && song.links.length > 0) },
+          { id: 'preview', label: 'Preview', show: !!song.youtube_embed_url },
+          { id: 'people', label: 'Artists', show: songCollaborators.length > 0 },
+          { id: 'lyrics', label: 'Lyrics', show: !!song.lyrics },
+          { id: 'album-songs', label: 'Album Songs', show: albumSongs.length > 0 },
+          { id: 'related', label: 'Related', show: relatedSongs.length > 0 },
+        ].filter(s => s.show).map(section => (
+          <button
+            key={section.id}
+            onClick={() => setActiveTab(section.id)}
+            className={cn(
+              'relative px-4 py-2 text-[13px] font-semibold transition-colors',
+              activeTab === section.id
+                ? 'text-[var(--am-text)]'
+                : 'text-[var(--am-text-3)] hover:text-[var(--am-text-2)]'
+            )}
+          >
+            {section.label}
+            {activeTab === section.id && (
+              <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: 'var(--am-accent)' }} />
+            )}
+          </button>
+        ))}
+      </div>
+
       {/* Album info (below hero) */}
-      {song.album && (
-        <div className="px-5 lg:px-8 pt-4 pb-2">
-          <p className="text-[11px] uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--am-text-3)' }}>Album</p>
+      {activeTab === 'album' && song.album && (
+        <div className="px-5 lg:px-8 pt-6 pb-8">
           <Link to={`/album/${song.album.id}`} className="text-[14px] font-semibold hover:underline">{song.album.title}</Link>
         </div>
       )}
 
-      {/* Streaming links */}
-      {song.links && song.links.length > 0 && (
-        <div className="px-5 lg:px-8 mb-8">
-          <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Listen on</p>
+      {activeTab === 'listen' && song.links && song.links.length > 0 && (
+        <div className="px-5 lg:px-8 pt-6 pb-8">
           <div className="grid grid-cols-2 gap-3">
             {song.links.map((link: any) => {
               const config = PLATFORM_CONFIG[link.platform as PlatformKey]
@@ -206,33 +250,50 @@ export default function SongPage() {
         </div>
       )}
 
-      {/* YouTube embed */}
-      {song.youtube_embed_url && (
-        <div className="px-5 lg:px-8 mb-6">
-          <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Preview</p>
+      {activeTab === 'preview' && song.youtube_embed_url && (
+        <div className="px-5 lg:px-8 pt-6 pb-8">
           <div className="max-w-2xl">
             <YouTubeEmbed url={song.youtube_embed_url} />
           </div>
         </div>
       )}
 
-      {/* People Behind This Song */}
-      <ArtistConnections
-        collaborators={songCollaborators}
-        title="People Behind This Song"
-        subtitle="The artists and creators who brought this track to life"
-      />
+      {activeTab === 'people' && (
+        <div className="px-5 lg:px-8 pt-6 pb-8">
+          <div className="flex flex-col gap-3">
+            {song.song_artists?.map((sa) => (
+              <Link
+                key={sa.id}
+                to={`/artist/${sa.artist_id}`}
+                className="flex items-center gap-3 transition-opacity hover:opacity-80"
+              >
+                {sa.artist?.image ? (
+                  <img src={sa.artist.image} alt={sa.artist.name} className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold" style={{ background: 'var(--am-surface-2)', color: 'var(--am-text-3)' }}>
+                    {sa.artist?.name?.charAt(0) || '?'}
+                  </div>
+                )}
+                <div>
+                  <p className="text-[14px] font-semibold">{sa.artist?.name || 'Unknown'}</p>
+                  {sa.role && (
+                    <p className="text-[12px]" style={{ color: 'var(--am-text-3)' }}>{sa.role}</p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
-      {/* Lyrics */}
-      {song.lyrics && (
-        <div className="px-5 lg:px-8 mb-10">
+      {activeTab === 'lyrics' && song.lyrics && (
+        <div className="px-5 lg:px-8 pt-6 pb-8">
           <div
             className="w-full max-w-2xl rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
             style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}
             onClick={() => setLyricsOpen(!lyricsOpen)}
           >
-            <div className="flex items-center justify-between p-5">
-              <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: 'var(--am-text-3)' }}>Lyrics</p>
+            <div className="flex items-center justify-end p-5">
               <ChevronDown
                 className="w-4 h-4 transition-transform duration-200"
                 style={{ color: 'var(--am-text-3)', transform: lyricsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
@@ -254,22 +315,18 @@ export default function SongPage() {
         </div>
       )}
 
-      {/* More from album */}
-      {albumSongs.length > 0 && (
-        <div className="px-5 lg:px-8 mb-10">
-          <h2 className="text-[22px] font-bold tracking-tight mb-4">More from this album</h2>
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+      {activeTab === 'album-songs' && albumSongs.length > 0 && (
+        <div className="px-5 lg:px-8 pt-6 pb-8">
+          <div className="grid grid-cols-3 gap-3">
             {albumSongs.map((s) => (
-              <SongCard key={s.id} song={s} />
+              <SongCard key={s.id} song={s} fill />
             ))}
           </div>
         </div>
       )}
 
-      {/* Related songs */}
-      {relatedSongs.length > 0 && (
-        <div className="px-5 lg:px-8 mb-10">
-          <h2 className="text-[22px] font-bold tracking-tight mb-4">More from these artists</h2>
+      {activeTab === 'related' && relatedSongs.length > 0 && (
+        <div className="px-5 lg:px-8 pt-6 pb-8">
           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {relatedSongs.map((s) => (
               <SongCard key={s.id} song={s} />
