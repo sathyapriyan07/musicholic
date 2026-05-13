@@ -7,8 +7,6 @@ import LoadingSpinner from '@/components/LoadingSpinner'
 import CinematicCard from '@/components/ui/CinematicCard'
 import FadeInView from '@/components/motion/FadeInView'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
-import ArtistConnections from '@/components/artist/ArtistConnections'
-import { useArtistCollaborators } from '@/components/artist/useCollaborators'
 import type { Artist, Song, Album, ArtistLink } from '@/types'
 import { ARTIST_PLATFORM_CONFIG } from '@/types'
 
@@ -24,7 +22,6 @@ export default function ArtistPage() {
   const [loading, setLoading] = useState(true)
   const [visibleSongs, setVisibleSongs] = useState(12)
   const [activeSection, setActiveSection] = useState<string>('bio')
-  const collaborators = useArtistCollaborators(id)
 
   useEffect(() => {
     async function fetchData() {
@@ -84,8 +81,6 @@ export default function ArtistPage() {
   if (loading) return <LoadingSpinner />
   if (!artist) return <div className="px-6 py-20 text-center" style={{ color: 'var(--am-text-2)' }}>Artist not found</div>
 
-  const hasImages = songs.filter(s => s.cover).slice(0, 9)
-
   const sections = [
     { id: 'bio', label: 'Bio', disabled: !artist.bio },
     { id: 'songs', label: 'Songs', disabled: songs.length === 0 },
@@ -113,7 +108,7 @@ export default function ArtistPage() {
           )}
         </div>
         <div className="flex flex-col justify-center min-w-0">
-          <h1 className="text-2xl lg:text-4xl font-bold tracking-tight leading-tight">{artist.name}</h1>
+          <h1 className="text-2xl lg:text-4xl font-bold tracking-tight leading-tight" style={{ fontFamily: 'var(--font-display)' }}>{artist.name}</h1>
           <p className="text-[14px] mt-1" style={{ color: 'var(--am-text-2)' }}>
             {songs.length} {songs.length === 1 ? 'song' : 'songs'}
             {albums.length > 0 && ` · ${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`}
@@ -121,25 +116,25 @@ export default function ArtistPage() {
         </div>
       </div>
 
-      {/* Pill tabs */}
-      <div className="flex gap-2 px-5 lg:px-8 pb-6 overflow-x-auto scrollbar-hide">
+      {/* Section tabs */}
+      <div className="flex gap-1 px-5 lg:px-8 pb-6 overflow-x-auto scrollbar-hide">
         {sections.map(s => (
           <button
             key={s.id}
             disabled={s.disabled}
             onClick={() => setActiveSection(s.id)}
             className={cn(
-              'px-4 py-1.5 rounded-full text-[13px] font-semibold transition-colors',
+              'relative px-4 py-2 text-[13px] font-semibold transition-colors',
               activeSection === s.id
-                ? 'text-white'
-                : 'text-[var(--am-text-2)] hover:text-white hover:bg-white/5',
+                ? 'text-[var(--am-text)]'
+                : 'text-[var(--am-text-3)] hover:text-[var(--am-text-2)]',
               s.disabled && 'opacity-30 cursor-not-allowed'
             )}
-            style={{
-              background: activeSection === s.id ? 'var(--am-accent)' : 'var(--am-surface-2)',
-            }}
           >
             {s.label}
+            {activeSection === s.id && (
+              <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: 'var(--am-accent)' }} />
+            )}
           </button>
         ))}
       </div>
@@ -222,32 +217,6 @@ export default function ArtistPage() {
           </motion.button>
         </div>
       )}
-
-      {/* Visual Journey */}
-      {hasImages.length >= 3 && (
-        <FadeInView>
-          <div className="mb-12 px-5 lg:px-8">
-            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-4">
-              Visual Journey
-            </h2>
-            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-              {hasImages.map((song) => (
-                <motion.div
-                  key={song.id}
-                  className="flex-shrink-0 w-40 h-40 rounded-2xl overflow-hidden"
-                  whileHover={{ scale: 1.05, rotate: -2 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <img src={song.cover!} alt={song.title} className="w-full h-full object-cover" loading="lazy" />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </FadeInView>
-      )}
-
-      {/* Creative Universe */}
-      <ArtistConnections collaborators={collaborators} />
 
       {/* Related Artists */}
       {relatedArtists.length > 0 && (

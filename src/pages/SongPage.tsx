@@ -101,8 +101,8 @@ export default function SongPage() {
 
   return (
     <div>
-      {/* Hero banner */}
-      {song.youtube_embed_url && (
+      {/* Hero banner with overlay */}
+      {song.youtube_embed_url ? (
         <div className="relative w-full aspect-video overflow-hidden">
           <YouTubeHeroPlayer
             videoId={extractYouTubeId(song.youtube_embed_url) || ''}
@@ -112,41 +112,72 @@ export default function SongPage() {
             onToggleMute={() => setMuted(!muted)}
             onToggleQuality={() => setQualityIndex((qualityIndex + 1) % qualityOptions.length)}
           />
+          <div className="absolute inset-0 flex items-end" style={{
+            background: 'linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)',
+          }}>
+            <div className="px-5 lg:px-8 pb-6 lg:pb-10 w-full">
+              <div className="flex items-end gap-5">
+                {coverUrl ? (
+                  <img src={coverUrl} alt={song.title} className="w-20 h-20 sm:w-28 sm:h-28 object-cover shadow-2xl flex-shrink-0" />
+                ) : (
+                  <div className="w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
+                    <svg viewBox="0 0 24 24" className="w-8 h-8" style={{ fill: 'var(--am-text-3)' }}>
+                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                    </svg>
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-2xl font-bold tracking-tight leading-tight text-white drop-shadow-lg" style={{ fontFamily: 'var(--font-display)' }}>{song.title}</h1>
+                  {song.artists && song.artists.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-x-3 mt-1">
+                      {song.artists.map((artist: Artist) => (
+                        <Link key={artist.id} to={`/artist/${artist.id}`} className="hover:underline transition-opacity">
+                          <span className="text-[13px] sm:text-[14px] font-semibold text-white/80 drop-shadow">{artist.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Cover image + info (no video) */
+        <div className="px-5 lg:px-8 pt-6 pb-8">
+          <div className="flex items-end gap-5">
+            {coverUrl ? (
+              <img src={coverUrl} alt={song.title} className="w-28 h-28 sm:w-32 sm:h-32 object-cover shadow-2xl flex-shrink-0" />
+            ) : (
+              <div className="w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
+                <svg viewBox="0 0 24 24" className="w-10 h-10" style={{ fill: 'var(--am-text-3)' }}>
+                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                </svg>
+              </div>
+            )}
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1 leading-tight" style={{ fontFamily: 'var(--font-display)' }}>{song.title}</h1>
+              {song.artists && song.artists.length > 0 && (
+                <div className="flex flex-wrap items-center gap-x-3">
+                  {song.artists.map((artist: Artist) => (
+                    <Link key={artist.id} to={`/artist/${artist.id}`} className="hover:underline transition-opacity">
+                      <span className="text-[14px] font-semibold" style={{ color: 'var(--am-text-2)' }}>{artist.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Cover image + info */}
-      <div className="px-5 lg:px-8 pt-6 pb-8">
-        <div className="flex items-end gap-5">
-          {coverUrl ? (
-            <img src={coverUrl} alt={song.title} className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover shadow-2xl flex-shrink-0" />
-          ) : (
-            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--am-surface-2)' }}>
-              <svg viewBox="0 0 24 24" className="w-10 h-10" style={{ fill: 'var(--am-text-3)' }}>
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-              </svg>
-            </div>
-          )}
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1 leading-tight">{song.title}</h1>
-            {song.artists && song.artists.length > 0 && (
-              <div className="flex flex-wrap items-center gap-x-3">
-                {song.artists.map((artist: Artist) => (
-                  <Link key={artist.id} to={`/artist/${artist.id}`} className="hover:underline transition-opacity">
-                    <span className="text-[14px] font-semibold" style={{ color: 'var(--am-text-2)' }}>{artist.name}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+      {/* Album info (below hero) */}
+      {song.album && (
+        <div className="px-5 lg:px-8 pt-4 pb-2">
+          <p className="text-[11px] uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--am-text-3)' }}>Album</p>
+          <Link to={`/album/${song.album.id}`} className="text-[14px] font-semibold hover:underline">{song.album.title}</Link>
         </div>
-        {song.album && (
-          <div className="mt-6">
-            <p className="text-[11px] uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--am-text-3)' }}>Album</p>
-            <Link to={`/album/${song.album.id}`} className="text-[14px] font-semibold hover:underline">{song.album.title}</Link>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Streaming links */}
       {song.links && song.links.length > 0 && (
