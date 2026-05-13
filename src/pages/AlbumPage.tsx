@@ -4,13 +4,12 @@ import { motion } from 'framer-motion'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import CinematicCard from '@/components/ui/CinematicCard'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import FadeInView from '@/components/motion/FadeInView'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
-import ArtistConnections from '@/components/artist/ArtistConnections'
 import { useAlbumCollaborators } from '@/components/artist/useCollaborators'
 import type { Album, Song, Artist } from '@/types'
 import { Play } from 'lucide-react'
 import { getYouTubeThumbnail } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 export default function AlbumPage() {
   const { id } = useParams<{ id: string }>()
@@ -18,6 +17,7 @@ export default function AlbumPage() {
   const [songs, setSongs] = useState<Song[]>([])
   const [artist, setArtist] = useState<Artist | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeSection, setActiveSection] = useState<string>('tracklist')
   const albumCollaborators = useAlbumCollaborators(id)
 
   useEffect(() => {
@@ -46,110 +46,87 @@ export default function AlbumPage() {
 
   return (
     <div>
-      {/* Cinematic Album Hero */}
-      <div className="relative h-[60vh] lg:h-[70vh] overflow-hidden">
-        {album.cover ? (
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url(${album.cover})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0" style={{ background: 'var(--am-surface-2)' }} />
-        )}
-        <div className="absolute inset-0" style={{
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 40%, var(--am-bg) 100%)',
-        }} />
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse at center, rgba(252,60,68,0.06) 0%, transparent 60%)',
-        }} />
-
-        <FadeInView className="relative z-10 h-full flex items-end">
-          <div className="px-5 lg:px-8 pb-16 lg:pb-20 w-full">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="editorial-title mb-3"
-            >
-              {album.title}
-            </motion.h1>
+      {/* Album header: cover + info */}
+      <div className="px-5 lg:px-8 pt-8 lg:pt-12 pb-8">
+        <div className="flex flex-col items-start">
+          {album.cover ? (
+            <img src={album.cover} alt={album.title} className="w-48 h-48 lg:w-56 lg:h-56 object-cover shadow-2xl" />
+          ) : (
+            <div className="w-48 h-48 lg:w-56 lg:h-56 flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+              <svg viewBox="0 0 24 24" className="w-12 h-12" style={{ fill: 'var(--am-text-3)' }}>
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+              </svg>
+            </div>
+          )}
+          <div className="mt-6">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight leading-tight" style={{ fontFamily: 'var(--font-display)' }}>{album.title}</h1>
             {artist && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="flex items-center gap-3"
-              >
+              <div className="flex items-center gap-2 mt-3">
                 <Link to={`/artist/${artist.id}`} className="flex items-center gap-2 group">
                   {artist.image ? (
-                    <img src={artist.image} alt={artist.name} className="w-8 h-8 rounded-full object-cover" />
+                    <img src={artist.image} alt={artist.name} className="w-5 h-5 rounded-full object-cover" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
-                      <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ fill: 'rgba(255,255,255,0.7)' }}>
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+                      <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ fill: 'var(--am-text-3)' }}>
                         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                       </svg>
                     </div>
                   )}
-                  <span className="text-[15px] font-semibold group-hover:opacity-80 transition-opacity" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    {artist.name}
-                  </span>
+                  <span className="text-[14px] font-semibold hover:opacity-70 transition-opacity" style={{ color: 'var(--am-text-2)' }}>{artist.name}</span>
                 </Link>
-                <span className="text-[14px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  · {songs.length} {songs.length === 1 ? 'song' : 'songs'}
-                </span>
-              </motion.div>
+                <span className="text-[13px]" style={{ color: 'var(--am-text-3)' }}>· {songs.length} {songs.length === 1 ? 'song' : 'songs'}</span>
+              </div>
             )}
           </div>
-        </FadeInView>
+        </div>
       </div>
 
-      {/* Creative Team */}
-      <ArtistConnections
-        collaborators={albumCollaborators}
-        title="Creative Team"
-        subtitle="The composers, singers, and producers behind this album"
-      />
-
-      {/* Album Moodboard */}
-      {songCovers.length >= 3 && (
-        <FadeInView>
-          <div className="px-5 lg:px-8 py-8">
-            <h2 className="text-[18px] lg:text-[22px] font-bold tracking-tight mb-4">Album Artwork</h2>
-            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-              {[album.cover, ...songCovers].filter(Boolean).slice(0, 8).map((url, i) => (
-                <motion.div
-                  key={i}
-                  className="flex-shrink-0 w-32 h-32 rounded-2xl overflow-hidden"
-                  whileHover={{ scale: 1.05, rotate: i % 2 === 0 ? 2 : -2 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <img src={url!} alt="" className="w-full h-full object-cover" loading="lazy" />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </FadeInView>
+      {/* Section tabs */}
+      {songs.length > 0 && (
+        <div className="flex gap-1 px-5 lg:px-8 pb-6 overflow-x-auto scrollbar-hide">
+          {[
+            { id: 'tracklist', label: 'Tracklist' },
+            { id: 'songs', label: 'Songs' },
+            { id: 'artwork', label: 'Artwork', disabled: songCovers.length < 3 },
+            { id: 'team', label: 'Team', disabled: albumCollaborators.length === 0 },
+          ].map(s => (
+            <button
+              key={s.id}
+              disabled={s.disabled}
+              onClick={() => setActiveSection(s.id)}
+              className={cn(
+                'relative px-4 py-2 text-[13px] font-semibold transition-colors',
+                activeSection === s.id
+                  ? 'text-[var(--am-text)]'
+                  : 'text-[var(--am-text-3)] hover:text-[var(--am-text-2)]',
+                s.disabled && 'opacity-30 cursor-not-allowed'
+              )}
+            >
+              {s.label}
+              {activeSection === s.id && (
+                <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: 'var(--am-accent)' }} />
+              )}
+            </button>
+          ))}
+        </div>
       )}
 
-      {/* Tracklist */}
+      {/* Section content */}
       <div className="px-5 lg:px-8 pb-20 lg:pb-24">
-        {songs.length > 0 && (
-          <FadeInView>
+        {activeSection === 'tracklist' && songs.length > 0 && (
+          <>
             <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Tracklist</h2>
             <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--am-divider)' }}>
               {songs.map((song, i) => (
                 <AlbumSongRow key={song.id} song={song} index={i} />
               ))}
             </div>
-          </FadeInView>
+          </>
         )}
 
-        {songs.length > 0 && (
-          <FadeInView>
-            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mt-12 mb-6">All Songs</h2>
+        {activeSection === 'songs' && songs.length > 0 && (
+          <>
+            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">All Songs</h2>
             <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
               {songs.map((song, i) => (
                 <StaggerItem key={song.id}>
@@ -163,7 +140,53 @@ export default function AlbumPage() {
                 </StaggerItem>
               ))}
             </StaggerGrid>
-          </FadeInView>
+          </>
+        )}
+
+        {activeSection === 'artwork' && songCovers.length >= 3 && (
+          <>
+            <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Album Artwork</h2>
+            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+              {[album.cover, ...songCovers].filter(Boolean).slice(0, 8).map((url, i) => (
+                <motion.div
+                  key={i}
+                  className="flex-shrink-0 w-32 h-32 rounded-2xl overflow-hidden"
+                  whileHover={{ scale: 1.05, rotate: i % 2 === 0 ? 2 : -2 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <img src={url!} alt="" className="w-full h-full object-cover" loading="lazy" />
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {activeSection === 'team' && albumCollaborators.length > 0 && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {albumCollaborators.map((collab) => (
+              <Link
+                key={collab.id}
+                to={`/artist/${collab.artistId}`}
+                className="group block"
+              >
+                <div className="aspect-[3/4] overflow-hidden" style={{ background: 'var(--am-surface-2)' }}>
+                  {collab.image ? (
+                    <img src={collab.image} alt={collab.name} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="w-8 h-8" style={{ fill: 'var(--am-text-3)' }}>
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-1.5">
+                  <p className="text-[12px] font-semibold truncate">{collab.name}</p>
+                  <p className="text-[10px] truncate" style={{ color: 'var(--am-text-3)' }}>{collab.role || collab.relationship}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
 
         {songs.length === 0 && (

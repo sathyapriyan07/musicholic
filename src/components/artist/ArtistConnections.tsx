@@ -30,24 +30,6 @@ interface ArtistConnectionsProps {
   subtitle?: string
 }
 
-const relationshipColors: Record<string, string> = {
-  'Frequent Collaborator': '#fc3c44',
-  'Featured Artist': '#ff6b70',
-  Producer: '#4fc3f7',
-  Lyricist: '#a78bfa',
-  Composer: '#34d399',
-  Singer: '#fbbf24',
-  Engineer: '#f472b6',
-  Director: '#60a5fa',
-}
-
-function getRelationshipColor(relationship: string): string {
-  for (const [key, color] of Object.entries(relationshipColors)) {
-    if (relationship.toLowerCase().includes(key.toLowerCase())) return color
-  }
-  return '#fc3c44'
-}
-
 export default function ArtistConnections({
   collaborators,
   title = 'Creative Universe',
@@ -59,7 +41,7 @@ export default function ArtistConnections({
   if (!collaborators.length) return null
 
   return (
-    <section className="relative py-16 lg:py-24 overflow-hidden">
+    <section className="relative py-10 lg:py-16 overflow-hidden">
       {/* Section background */}
       <div className="absolute inset-0" style={{
         background: 'radial-gradient(ellipse at 30% 50%, rgba(252,60,68,0.03) 0%, transparent 60%)',
@@ -69,7 +51,7 @@ export default function ArtistConnections({
       }} />
 
       {/* Section header */}
-      <div className="relative px-5 lg:px-8 mb-10 lg:mb-14">
+      <div className="relative px-5 lg:px-8 mb-6 lg:mb-10">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -84,7 +66,7 @@ export default function ArtistConnections({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.05 }}
-          className="text-2xl lg:text-[32px] font-bold tracking-tight leading-[1.1] max-w-2xl"
+          className="text-xl lg:text-2xl font-bold tracking-tight leading-[1.1] max-w-2xl"
         >
           {subtitle}
         </motion.h2>
@@ -93,7 +75,7 @@ export default function ArtistConnections({
       {/* Collaborator grid */}
       <div className="relative px-5 lg:px-8">
         {/* Desktop grid */}
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
           {collaborators.map((collab, i) => (
             <CollaboratorCard
               key={collab.id}
@@ -107,7 +89,7 @@ export default function ArtistConnections({
         </div>
 
         {/* Mobile horizontal scroll */}
-        <div className="flex sm:hidden gap-4 overflow-x-auto pb-4 scrollbar-hide">
+        <div className="flex sm:hidden gap-3 overflow-x-auto pb-4 scrollbar-hide">
           {collaborators.map((collab, i) => (
             <CollaboratorCard
               key={collab.id}
@@ -140,8 +122,6 @@ function CollaboratorCard({
   onClick: () => void
   compact?: boolean
 }) {
-  const relColor = getRelationshipColor(collab.relationship)
-
   return (
     <motion.button
       initial={{ opacity: 0, y: 30 }}
@@ -151,13 +131,13 @@ function CollaboratorCard({
       onMouseEnter={() => onHover(collab.id)}
       onMouseLeave={() => onHover(null)}
       onClick={onClick}
-      className={`group relative text-left cursor-pointer min-w-0 ${compact ? 'w-40 flex-shrink-0' : 'w-full'}`}
+      className={`group relative text-left cursor-pointer min-w-0 ${compact ? 'w-36 flex-shrink-0' : 'w-full'}`}
       whileHover={{ y: -4, transition: { duration: 0.3 } }}
     >
       {/* Card container */}
       <div className="relative overflow-hidden rounded-2xl" style={{ background: 'var(--am-surface)' }}>
         {/* Image container */}
-        <div className={`relative overflow-hidden ${compact ? 'aspect-[4/5]' : 'aspect-[4/5] lg:aspect-[3/4]'}`}>
+        <div className={`relative overflow-hidden ${compact ? 'aspect-[3/4]' : 'aspect-[3/4]'}`}>
           {collab.image ? (
             <img
               src={collab.image}
@@ -170,46 +150,39 @@ function CollaboratorCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
-              <Mic2 className="w-12 h-12" style={{ color: 'var(--am-text-3)' }} />
+              <Mic2 className="w-8 h-8" style={{ color: 'var(--am-text-3)' }} />
             </div>
           )}
 
           {/* Name at bottom */}
           {collab.image && (
-            <div className="absolute bottom-0 left-0 right-0 p-3">
-              <p className="text-[13px] font-bold text-white drop-shadow-lg">{collab.name}</p>
+            <div className="absolute bottom-0 left-0 right-0">
+              <div className="absolute inset-0" style={{
+                background: 'linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)',
+              }} />
+              <div className="relative p-2">
+                <p className="text-[12px] font-bold text-white drop-shadow-lg">{collab.name}</p>
+                <p className="text-[10px] text-white/70 drop-shadow leading-tight mt-0.5">{collab.role || collab.relationship}</p>
+              </div>
             </div>
           )}
 
-          {/* Relationship badge */}
-          <div className="absolute top-3 left-3">
-            <span
-              className="inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider"
-              style={{
-                background: `${relColor}20`,
-                color: relColor,
-                backdropFilter: 'blur(8px)',
-                border: `1px solid ${relColor}30`,
-              }}
-            >
-              {collab.role || collab.relationship}
-            </span>
-          </div>
+
         </div>
 
         {/* Info section below image */}
-        <div className={`p-3 lg:p-4 ${compact ? 'hidden' : ''}`}>
-          <p className="text-[13px] font-semibold truncate">{collab.name}</p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <Music className="w-3 h-3" style={{ color: 'var(--am-text-3)' }} />
-            <span className="text-[11px]" style={{ color: 'var(--am-text-2)' }}>
+        <div className={`p-2.5 lg:p-3 ${compact ? 'hidden' : ''}`}>
+          <p className="text-[12px] font-semibold truncate">{collab.name}</p>
+          <div className="flex items-center gap-1.5 mt-1">
+            <Music className="w-2.5 h-2.5" style={{ color: 'var(--am-text-3)' }} />
+            <span className="text-[10px]" style={{ color: 'var(--am-text-2)' }}>
               {collab.songsTogether} songs · {collab.albumsTogether} {collab.albumsTogether === 1 ? 'album' : 'albums'}
             </span>
           </div>
 
           {/* Platform icons */}
           {collab.platforms && (
-            <div className="flex gap-2 mt-2.5">
+            <div className="flex gap-1.5 mt-2">
               {collab.platforms.spotify && (
                 <a
                   href={collab.platforms.spotify}

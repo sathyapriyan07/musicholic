@@ -208,7 +208,7 @@ export default function SongPage() {
 
       {/* YouTube embed */}
       {song.youtube_embed_url && (
-        <div className="px-5 lg:px-8 mb-10">
+        <div className="px-5 lg:px-8 mb-6">
           <p className="text-[11px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--am-text-3)' }}>Preview</p>
           <div className="max-w-2xl">
             <YouTubeEmbed url={song.youtube_embed_url} />
