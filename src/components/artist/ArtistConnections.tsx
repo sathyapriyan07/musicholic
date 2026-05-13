@@ -174,6 +174,13 @@ function CollaboratorCard({
             </div>
           )}
 
+          {/* Name at bottom */}
+          {collab.image && (
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <p className="text-[13px] font-bold text-white drop-shadow-lg">{collab.name}</p>
+            </div>
+          )}
+
           {/* Relationship badge */}
           <div className="absolute top-3 left-3">
             <span
