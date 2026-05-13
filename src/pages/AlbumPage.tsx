@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import CinematicCard from '@/components/ui/CinematicCard'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import StaggerGrid, { StaggerItem } from '@/components/motion/StaggerGrid'
 import { useAlbumCollaborators } from '@/components/artist/useCollaborators'
-import type { Album, Song, Artist } from '@/types'
+import type { Album, Song, Artist, PlatformKey } from '@/types'
+import { PLATFORM_CONFIG } from '@/types'
 import { Play } from 'lucide-react'
 import { getYouTubeThumbnail } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -146,11 +147,11 @@ export default function AlbumPage() {
         {activeSection === 'artwork' && songCovers.length >= 3 && (
           <>
             <h2 className="text-[22px] lg:text-[28px] font-bold tracking-tight mb-6">Album Artwork</h2>
-            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {[album.cover, ...songCovers].filter(Boolean).slice(0, 8).map((url, i) => (
                 <motion.div
                   key={i}
-                  className="flex-shrink-0 w-32 h-32 rounded-2xl overflow-hidden"
+                  className="aspect-square overflow-hidden"
                   whileHover={{ scale: 1.05, rotate: i % 2 === 0 ? 2 : -2 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -199,6 +200,7 @@ export default function AlbumPage() {
 
 function AlbumSongRow({ song, index }: { song: Song; index: number }) {
   const thumbnail = song.cover || getYouTubeThumbnail(song.youtube_embed_url)
+  const navigate = useNavigate()
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
@@ -206,9 +208,9 @@ function AlbumSongRow({ song, index }: { song: Song; index: number }) {
       viewport={{ once: true }}
       transition={{ duration: 0.3, delay: index * 0.03 }}
     >
-      <Link
-        to={`/song/${song.id}`}
-        className="group flex items-center gap-3 py-3 px-4 transition-colors hover:bg-white/5"
+      <div
+        onClick={() => navigate(`/song/${song.id}`)}
+        className="group flex items-center gap-3 py-3 px-4 transition-colors hover:bg-white/5 cursor-pointer"
         style={{ borderBottom: '1px solid var(--am-divider)' }}
       >
         <div className="flex items-center gap-3 min-w-[48px]">
@@ -227,13 +229,37 @@ function AlbumSongRow({ song, index }: { song: Song; index: number }) {
               {song.artists.map(a => a.name).join(', ')}
             </p>
           )}
+          {song.links && song.links.length > 0 && (
+            <div className="flex items-center gap-2 mt-1.5">
+              {song.links.map((link) => {
+                const config = PLATFORM_CONFIG[link.platform as PlatformKey]
+                return config ? (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="transition-opacity hover:opacity-70"
+                    title={config.name}
+                  >
+                    {config.logo ? (
+                      <img src={config.logo} alt={config.name} className="w-3.5 h-3.5 object-contain" />
+                    ) : (
+                      <span className="text-[10px] font-medium" style={{ color: 'var(--am-text-3)' }}>{config.name}</span>
+                    )}
+                  </a>
+                ) : null
+              })}
+            </div>
+          )}
         </div>
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
           <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--am-accent)' }}>
             <Play className="w-3.5 h-3.5 fill-white ml-0.5" style={{ color: '#fff' }} />
           </div>
         </div>
-      </Link>
+      </div>
     </motion.div>
   )
 }
