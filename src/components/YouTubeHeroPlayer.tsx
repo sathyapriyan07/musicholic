@@ -117,7 +117,7 @@ export default function YouTubeHeroPlayer({ videoId, muted, quality, qualityLabe
     <div className="relative w-full h-full">
       <div ref={containerRef} className="absolute inset-0" style={{ transform: 'scale(1.5)' }} />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--am-bg) 0%, transparent 40%)' }} />
-      <div className="absolute bottom-4 right-4 z-10 flex gap-2">
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
         <button
           onClick={togglePlay}
           className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
