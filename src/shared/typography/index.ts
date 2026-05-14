@@ -1,0 +1,6 @@
+export { default as DisplayTitle } from './DisplayTitle'
+export { default as PageTitle } from './PageTitle'
+export { default as SectionTitle } from './SectionTitle'
+export { default as BodyText } from './BodyText'
+export { default as Caption } from './Caption'
+export { default as MetaText } from './MetaText'
