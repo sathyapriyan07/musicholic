@@ -3,16 +3,17 @@ import { cn } from '@/shared/lib/cn'
 interface GlowCardProps {
   children: React.ReactNode
   className?: string
-  accent?: boolean
 }
 
-export default function GlowCard({ children, className, accent }: GlowCardProps) {
+export default function GlowCard({ children, className }: GlowCardProps) {
   return (
     <div
-      className={cn('relative rounded-2xl overflow-hidden', className)}
+      className={cn('rounded-2xl relative', className)}
       style={{
-        background: 'var(--am-surface)',
-        boxShadow: accent ? 'var(--cinematic-glow)' : undefined,
+        background: 'var(--am-glass-bg)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid var(--am-border)',
       }}
     >
       {children}

@@ -2,16 +2,15 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
-import { cn } from '@/shared/lib/cn'
+
 import { ARTIST_PLATFORM_CONFIG } from '@/types'
 import type { Artist, Song, Album, ArtistLink } from '@/types'
-import { PageShell, PageBackdrop, PageContent, AmbientGradient } from '@/shared/layout'
+import { PageShell, PageContent } from '@/shared/layout'
 import { SectionTitle, BodyText } from '@/shared/typography'
-import { FadeInView, FloatingMotion, StaggerGrid, StaggerItem } from '@/shared/motion'
+import { FadeInView } from '@/shared/motion'
 import CinematicCard from '@/shared/ui/CinematicCard'
 import LoadingSpinner from '@/shared/ui/LoadingSpinner'
-import { useArtistCollaborators } from '@/features/artists/useCollaborators'
-import ArtistConnections from '@/features/artists/ArtistConnections'
+
 
 const platformConfig = ARTIST_PLATFORM_CONFIG
 
@@ -23,10 +22,9 @@ export default function ArtistPage() {
   const [artistLinks, setArtistLinks] = useState<ArtistLink[]>([])
   const [relatedArtists, setRelatedArtists] = useState<Artist[]>([])
   const [loading, setLoading] = useState(true)
-  const [visibleSongs, setVisibleSongs] = useState(12)
-  const [activeSection, setActiveSection] = useState<string>('bio')
 
-  const collaborators = useArtistCollaborators(id)
+
+
 
   useEffect(() => {
     async function fetchData() {
@@ -86,112 +84,77 @@ export default function ArtistPage() {
   if (loading) return <LoadingSpinner />
   if (!artist) return <div className="px-6 py-20 text-center" style={{ color: 'var(--am-text-2)' }}>Artist not found</div>
 
-  const sections = [
-    { id: 'bio', label: 'Bio', disabled: !artist.bio },
-    { id: 'songs', label: 'Songs', disabled: songs.length === 0 },
-    { id: 'albums', label: 'Albums', disabled: albums.length === 0 },
-    { id: 'links', label: 'Links', disabled: artistLinks.length === 0 },
-    ...(collaborators.length > 0 ? [{ id: 'collaborators', label: 'Collaborators', disabled: false }] : []),
-  ]
-
   return (
     <PageShell>
-      <PageBackdrop image={artist.image} />
-      <AmbientGradient />
       <PageContent>
-        {/* Sticky cinematic hero */}
-        <div
-          className="sticky top-0 z-20 pt-8 lg:pt-12 pb-6 px-5 lg:px-8"
-          style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-        >
-          <div className="flex gap-6 lg:gap-8 items-center">
-            <FloatingMotion amplitude={8} duration={5}>
-              <div
-                className="w-32 h-32 lg:w-44 lg:h-44 flex-shrink-0 overflow-hidden rounded-2xl"
-                style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
-              >
-                {artist.image ? (
-                  <img src={artist.image} alt={artist.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
-                    <svg viewBox="0 0 24 24" className="w-12 h-12" style={{ fill: 'var(--am-text-3)' }}>
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            </FloatingMotion>
-            <div className="flex flex-col justify-center min-w-0">
-              <h1 className="text-2xl lg:text-4xl font-bold tracking-tight leading-tight" style={{ fontFamily: 'var(--font-display)' }}>{artist.name}</h1>
-              <p className="text-[14px] mt-1" style={{ color: 'var(--am-text-2)' }}>
-                {songs.length} {songs.length === 1 ? 'song' : 'songs'}
-                {albums.length > 0 && ` · ${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`}
-              </p>
+        {/* Artist hero */}
+        <div className="relative w-full aspect-video overflow-hidden">
+          {artist.image ? (
+            <img src={artist.image} alt={artist.name} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+              <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
             </div>
+          )}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 50%)',
+          }} />
+          <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
+            <h1 className="text-2xl lg:text-4xl font-bold tracking-tight leading-tight text-white drop-shadow-lg" style={{ fontFamily: 'var(--font-display)' }}>{artist.name}</h1>
+            <p className="text-[14px] mt-1 text-white/70">
+              {songs.length} {songs.length === 1 ? 'song' : 'songs'}
+              {albums.length > 0 && ` · ${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`}
+            </p>
           </div>
         </div>
 
-        {/* Section tabs */}
-        <div className="flex gap-1 px-5 lg:px-8 pb-6 overflow-x-auto scrollbar-hide">
-          {sections.map(s => (
-            <button
-              key={s.id}
-              disabled={s.disabled}
-              onClick={() => setActiveSection(s.id)}
-              className={cn(
-                'relative px-4 py-2 text-[13px] font-semibold transition-colors',
-                activeSection === s.id
-                  ? 'text-[var(--am-text)]'
-                  : 'text-[var(--am-text-3)] hover:text-[var(--am-text-2)]',
-                s.disabled && 'opacity-30 cursor-not-allowed'
-              )}
-            >
-              {s.label}
-              {activeSection === s.id && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: 'var(--am-accent)' }} />
-              )}
-            </button>
-          ))}
-        </div>
-
         {/* Section content */}
-        <div className="px-5 lg:px-8 pb-12">
-          {activeSection === 'bio' && artist.bio && (
+        <div className="px-5 lg:px-8 pt-8 pb-12 space-y-12">
+          {artist.bio && (
             <BodyText muted className="whitespace-pre-line max-w-3xl">{artist.bio}</BodyText>
           )}
 
-          {activeSection === 'songs' && songs.length > 0 && (
-            <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
-              {songs.slice(0, visibleSongs).map((song, i) => (
-                <StaggerItem key={song.id}>
-                  <CinematicCard
-                    to={`/song/${song.id}`}
-                    image={song.cover}
-                    title={song.title}
-                    subtitle={song.artists?.map(a => a.name).join(', ')}
-                    index={i}
-                  />
-                </StaggerItem>
-              ))}
-            </StaggerGrid>
-          )}
-
-          {activeSection === 'albums' && albums.length > 0 && (
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-              {albums.map((album, i) => (
-                <CinematicCard
-                  key={album.id}
-                  to={`/album/${album.id}`}
-                  image={album.cover}
-                  title={album.title}
-                  subtitle={album.artist?.name}
-                  index={i}
-                />
-              ))}
+          {songs.length > 0 && (
+            <div>
+              <SectionTitle className="mb-5">Songs</SectionTitle>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {songs.map((song, i) => (
+                  <div key={song.id} className="flex-shrink-0 w-40">
+                    <CinematicCard
+                      to={`/song/${song.id}`}
+                      image={song.cover}
+                      title={song.title}
+                      subtitle={song.artists?.map(a => a.name).join(', ')}
+                      index={i}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {activeSection === 'links' && artistLinks.length > 0 && (
+          {albums.length > 0 && (
+            <div>
+              <SectionTitle className="mb-5">Albums</SectionTitle>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {albums.map((album, i) => (
+                  <div key={album.id} className="flex-shrink-0 w-40">
+                    <CinematicCard
+                      to={`/album/${album.id}`}
+                      image={album.cover}
+                      title={album.title}
+                      subtitle={album.artist?.name}
+                      index={i}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {artistLinks.length > 0 && (
             <div className="flex flex-wrap gap-3 max-w-xl">
               {artistLinks.map((link) => {
                 const config = platformConfig[link.platform as keyof typeof platformConfig]
@@ -214,31 +177,8 @@ export default function ArtistPage() {
             </div>
           )}
 
-          {activeSection === 'collaborators' && collaborators.length > 0 && (
-            <ArtistConnections collaborators={collaborators} />
-          )}
+
         </div>
-
-        {activeSection === 'songs' && visibleSongs < songs.length && (
-          <div className="flex justify-center pb-12">
-            <motion.button
-              onClick={() => setVisibleSongs((prev) => prev + 12)}
-              className="px-6 py-2.5 rounded-full text-[13px] font-semibold transition-all hover:opacity-90"
-              style={{ background: 'var(--am-accent)', color: '#fff' }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              View More
-            </motion.button>
-          </div>
-        )}
-
-        {/* Collaborators standalone section */}
-        {collaborators.length > 0 && activeSection !== 'collaborators' && (
-          <FadeInView>
-            <ArtistConnections collaborators={collaborators} />
-          </FadeInView>
-        )}
 
         {/* Related Artists */}
         {relatedArtists.length > 0 && (

@@ -10,30 +10,30 @@
   --color-am-text: #ffffff;
   --color-am-text-2: #a0a0a0;
   --color-am-text-3: #555555;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Mona Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: 'Mona Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 :root {
   --am-bg: #000000;
-  --am-surface: #080808;
-  --am-surface-2: #111111;
-  --am-surface-3: #1a1a1a;
-  --am-surface-hover: #181818;
+  --am-surface: #000000;
+  --am-surface-2: #000000;
+  --am-surface-3: #000000;
+  --am-surface-hover: #0a0a0a;
   --am-accent: #fc3c44;
   --am-accent-hover: #e52d35;
   --am-accent-light: #ff6b70;
   --am-text: #ffffff;
   --am-text-2: #a0a0a0;
   --am-text-3: #555555;
-  --am-border: rgba(255, 255, 255, 0.08);
-  --am-divider: rgba(255, 255, 255, 0.05);
+  --am-border: rgba(255, 255, 255, 0.06);
+  --am-divider: rgba(255, 255, 255, 0.03);
   --am-nav-bg: #000000;
-  --am-bottom-nav-bg: rgba(0, 0, 0, 0.92);
+  --am-bottom-nav-bg: #000000;
   --am-card-radius: 12px;
-  --am-overlay: rgba(0, 0, 0, 0.6);
-  --am-cinematic-overlay: rgba(0, 0, 0, 0.4);
-  --am-glass-bg: rgba(8, 8, 8, 0.6);
+  --am-overlay: rgba(0, 0, 0, 0.8);
+  --am-cinematic-overlay: rgba(0, 0, 0, 0.6);
+  --am-glass-bg: rgba(0, 0, 0, 0.8);
 
   --yt-bg: var(--am-bg);
   --yt-surface: var(--am-surface);

@@ -23,7 +23,7 @@ self.addEventListener('activate', (event) => {
 
 function safeCachePut(cache, request, response) {
   if (response.ok) {
-    cache.put(request, response.clone())
+    cache.put(request, response)
   }
 }
 
@@ -46,7 +46,8 @@ self.addEventListener('fetch', (event) => {
       caches.match(request).then((cached) =>
         cached ||
         fetch(request).then((response) => {
-          caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, response))
+          const r = response.clone()
+          caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, r))
           return response
         })
       )
@@ -59,7 +60,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, response))
+          const r = response.clone()
+          caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, r))
           return response
         })
         .catch(() => caches.match('/'))
@@ -71,7 +73,8 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, response))
+        const r = response.clone()
+        caches.open(CACHE_NAME).then((cache) => safeCachePut(cache, request, r))
         return response
       })
       .catch(() => caches.match(request))

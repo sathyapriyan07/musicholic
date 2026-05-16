@@ -7,7 +7,7 @@ interface CaptionProps {
 
 export default function Caption({ children, className }: CaptionProps) {
   return (
-    <p className={cn('text-[12px] leading-tight', className)} style={{ color: 'var(--am-text-2)' }}>
+    <p className={cn('text-xs font-medium', className)} style={{ color: 'var(--am-text-3)' }}>
       {children}
     </p>
   )

@@ -3,13 +3,13 @@ import { cn } from '@/shared/lib/cn'
 interface DisplayTitleProps {
   children: React.ReactNode
   className?: string
-  as?: 'h1' | 'h2' | 'span'
 }
 
-export default function DisplayTitle({ children, className, as: Tag = 'h1' }: DisplayTitleProps) {
+export default function DisplayTitle({ children, className }: DisplayTitleProps) {
   return (
-    <Tag className={cn('editorial-title', className)}>
+    <h1 className={cn('text-[32px] lg:text-[42px] font-bold tracking-tight leading-tight', className)}
+      style={{ color: 'var(--am-text)', fontFamily: 'var(--font-display)' }}>
       {children}
-    </Tag>
+    </h1>
   )
 }

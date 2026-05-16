@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
-import { cn, getYouTubeThumbnail } from '@/shared/lib/cn'
-import { PageShell, PageBackdrop, PageContent, AmbientGradient } from '@/shared/layout'
+import { getYouTubeThumbnail } from '@/shared/lib/cn'
+import { PageShell, PageContent } from '@/shared/layout'
 import { SectionTitle, BodyText } from '@/shared/typography'
 import { Play } from 'lucide-react'
-import { FadeInView, StaggerGrid, StaggerItem } from '@/shared/motion'
-import CinematicCard from '@/shared/ui/CinematicCard'
+import { FadeInView } from '@/shared/motion'
 import LoadingSpinner from '@/shared/ui/LoadingSpinner'
 import { useAlbumCollaborators } from '@/features/artists/useCollaborators'
 import type { Album, Song, Artist, PlatformKey } from '@/types'
@@ -19,9 +18,8 @@ export default function AlbumPage() {
   const [songs, setSongs] = useState<Song[]>([])
   const [artist, setArtist] = useState<Artist | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeSection, setActiveSection] = useState<string>('tracklist')
   const albumCollaborators = useAlbumCollaborators(id)
-  const [isSpinning, setIsSpinning] = useState(true)
+
 
   useEffect(() => {
     async function fetchData() {
@@ -49,42 +47,20 @@ export default function AlbumPage() {
 
   return (
     <PageShell>
-      <PageBackdrop image={album.cover} />
-      <AmbientGradient />
       <PageContent>
-        {/* Album header: spinning vinyl + info */}
+        {/* Album header */}
         <div className="px-5 lg:px-8 pt-8 lg:pt-12 pb-8">
           <div className="flex flex-col items-start">
             <FadeInView direction="up">
-              <motion.div
-                className="relative w-48 h-48 lg:w-56 lg:h-56"
-                onHoverStart={() => setIsSpinning(false)}
-                onHoverEnd={() => setIsSpinning(true)}
-              >
-                {album.cover ? (
-                  <>
-                    <div className="absolute inset-0 rounded-full" style={{ background: 'var(--am-surface-2)' }} />
-                    <div className="absolute inset-3 rounded-full border" style={{ borderColor: 'var(--am-divider)' }} />
-                    <div className="absolute inset-6 rounded-full border" style={{ borderColor: 'var(--am-divider)' }} />
-                    <motion.img
-                      src={album.cover}
-                      alt={album.title}
-                      className="absolute inset-0 w-full h-full object-cover rounded-full shadow-2xl"
-                      animate={isSpinning ? { rotate: 360 } : { rotate: 0 }}
-                      transition={isSpinning ? { duration: 8, repeat: Infinity, ease: 'linear' } : { duration: 0.4, ease: 'easeOut' }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-8 h-8 rounded-full border-2 border-white/20 shadow-lg" style={{ background: 'var(--am-accent)' }} />
-                    </div>
-                  </>
-                ) : (
-                  <div className="w-full h-full rounded-full flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
-                    <svg viewBox="0 0 24 24" className="w-12 h-12" style={{ fill: 'var(--am-text-3)' }}>
-                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                    </svg>
-                  </div>
-                )}
-              </motion.div>
+              {album.cover ? (
+                <img src={album.cover} alt={album.title} className="w-48 h-48 lg:w-56 lg:h-56 object-cover shadow-2xl rounded-xl" />
+              ) : (
+                <div className="w-48 h-48 lg:w-56 lg:h-56 flex items-center justify-center rounded-xl" style={{ background: 'var(--am-surface-2)' }}>
+                  <svg viewBox="0 0 24 24" className="w-12 h-12" style={{ fill: 'var(--am-text-3)' }}>
+                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                  </svg>
+                </div>
+              )}
             </FadeInView>
             <div className="mt-6">
               <h1 className="text-2xl lg:text-3xl font-bold tracking-tight leading-tight" style={{ fontFamily: 'var(--font-display)' }}>{album.title}</h1>
@@ -109,70 +85,21 @@ export default function AlbumPage() {
           </div>
         </div>
 
-        {/* Section tabs */}
-        {songs.length > 0 && (
-          <div className="flex gap-1 px-5 lg:px-8 pb-6 overflow-x-auto scrollbar-hide">
-            {[
-              { id: 'tracklist', label: 'Tracklist' },
-              { id: 'songs', label: 'Songs' },
-              { id: 'artwork', label: 'Artwork', disabled: songCovers.length < 3 },
-              { id: 'team', label: 'Team', disabled: albumCollaborators.length === 0 },
-            ].map(s => (
-              <button
-                key={s.id}
-                disabled={s.disabled}
-                onClick={() => setActiveSection(s.id)}
-                className={cn(
-                  'relative px-4 py-2 text-[13px] font-semibold transition-colors',
-                  activeSection === s.id
-                    ? 'text-[var(--am-text)]'
-                    : 'text-[var(--am-text-3)] hover:text-[var(--am-text-2)]',
-                  s.disabled && 'opacity-30 cursor-not-allowed'
-                )}
-              >
-                {s.label}
-                {activeSection === s.id && (
-                  <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: 'var(--am-accent)' }} />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Section content */}
         <div className="px-5 lg:px-8 pb-20 lg:pb-24">
-          {activeSection === 'tracklist' && songs.length > 0 && (
-            <>
+          {songs.length > 0 && (
+            <div className="mb-12">
               <SectionTitle className="mb-6">Tracklist</SectionTitle>
               <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--am-divider)' }}>
                 {songs.map((song, i) => (
                   <AlbumSongRow key={song.id} song={song} index={i} />
                 ))}
               </div>
-            </>
+            </div>
           )}
 
-          {activeSection === 'songs' && songs.length > 0 && (
-            <>
-              <SectionTitle className="mb-6">All Songs</SectionTitle>
-              <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
-                {songs.map((song, i) => (
-                  <StaggerItem key={song.id}>
-                    <CinematicCard
-                      to={`/song/${song.id}`}
-                      image={song.cover}
-                      title={song.title}
-                      subtitle={song.artists?.map(a => a.name).join(', ')}
-                      index={i}
-                    />
-                  </StaggerItem>
-                ))}
-              </StaggerGrid>
-            </>
-          )}
-
-          {activeSection === 'artwork' && songCovers.length >= 3 && (
-            <>
+          {songCovers.length >= 3 && (
+            <div className="mb-12">
               <SectionTitle className="mb-6">Album Artwork</SectionTitle>
               <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 {[album.cover, ...songCovers].filter(Boolean).slice(0, 8).map((url, i) => (
@@ -187,34 +114,40 @@ export default function AlbumPage() {
                   </motion.div>
                 ))}
               </div>
-            </>
+            </div>
           )}
 
-          {activeSection === 'team' && albumCollaborators.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {albumCollaborators.map((collab) => (
-                <Link
-                  key={collab.id}
-                  to={`/artist/${collab.artistId}`}
-                  className="group block"
-                >
-                  <div className="aspect-[3/4] overflow-hidden rounded-lg" style={{ background: 'var(--am-surface-2)' }}>
-                    {collab.image ? (
-                      <img src={collab.image} alt={collab.name} className="w-full h-full object-cover" loading="lazy" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" className="w-8 h-8" style={{ fill: 'var(--am-text-3)' }}>
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
+          {albumCollaborators.length > 0 && (
+            <div className="mb-12">
+              <SectionTitle className="mb-6">Team</SectionTitle>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {albumCollaborators.map((collab) => (
+                  <Link
+                    key={collab.id}
+                    to={`/artist/${collab.artistId}`}
+                    className="group block flex-shrink-0 w-32"
+                  >
+                    <div className="aspect-[3/4] overflow-hidden rounded-lg relative" style={{ background: 'var(--am-surface-2)' }}>
+                      {collab.image ? (
+                        <img src={collab.image} alt={collab.name} className="w-full h-full object-cover" loading="lazy" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <svg viewBox="0 0 24 24" className="w-8 h-8" style={{ fill: 'var(--am-text-3)' }}>
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="absolute inset-0" style={{
+                        background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 50%)',
+                      }} />
+                      <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                        <p className="text-[12px] font-semibold truncate text-white drop-shadow-lg">{collab.name}</p>
+                        <p className="text-[10px] truncate text-white/70 drop-shadow-lg">{collab.role || collab.relationship}</p>
                       </div>
-                    )}
-                  </div>
-                  <div className="mt-1.5">
-                    <p className="text-[12px] font-semibold truncate">{collab.name}</p>
-                    <p className="text-[10px] truncate" style={{ color: 'var(--am-text-3)' }}>{collab.role || collab.relationship}</p>
-                  </div>
-                </Link>
-              ))}
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
 

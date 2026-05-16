@@ -8,11 +8,11 @@ interface FloatingSurfaceProps {
 export default function FloatingSurface({ children, className }: FloatingSurfaceProps) {
   return (
     <div
-      className={cn('rounded-2xl shadow-2xl', className)}
+      className={cn('rounded-xl', className)}
       style={{
         background: 'var(--am-glass-bg)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         border: '1px solid var(--am-border)',
       }}
     >

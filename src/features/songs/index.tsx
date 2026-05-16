@@ -1,13 +1,11 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { cn, getYouTubeThumbnail, extractYouTubeId } from '@/shared/lib/cn'
+import { getYouTubeThumbnail, extractYouTubeId } from '@/shared/lib/cn'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
 import { PLATFORM_CONFIG } from '@/types'
 import type { Artist, Song, PlatformKey } from '@/types'
 import PageShell from '@/shared/layout/PageShell'
-import PageBackdrop from '@/shared/layout/PageBackdrop'
 import PageContent from '@/shared/layout/PageContent'
-import AmbientGradient from '@/shared/layout/AmbientGradient'
 import YouTubeHeroPlayer from '@/features/songs/YouTubeHeroPlayer'
 import YouTubeEmbed from '@/features/songs/YouTubeEmbed'
 import { useSongCollaborators } from '@/components/artist/useCollaborators'
@@ -30,19 +28,6 @@ const qualityLabels: Record<string, string> = {
   medium: '360p',
 }
 
-function getSectionTabs(song: Song | null, hasAlbumSongs: boolean, hasRelated: boolean, collaboratorCount: number) {
-  if (!song) return []
-  return [
-    { id: 'album', label: 'Album', show: !!song.album },
-    { id: 'listen', label: 'Listen On', show: !!(song.links && song.links.length > 0) },
-    { id: 'preview', label: 'Preview', show: !!song.youtube_embed_url },
-    { id: 'people', label: 'Artists', show: collaboratorCount > 0 },
-    { id: 'lyrics', label: 'Lyrics', show: !!song.lyrics },
-    { id: 'album-songs', label: 'Album Songs', show: hasAlbumSongs },
-    { id: 'related', label: 'Related', show: hasRelated },
-  ].filter(s => s.show)
-}
-
 export default function SongPage() {
   const { id } = useParams<{ id: string }>()
   const [song, setSong] = useState<Song | null>(null)
@@ -53,9 +38,6 @@ export default function SongPage() {
   const songCollaborators = useSongCollaborators(id)
   const [muted, setMuted] = useState(true)
   const [qualityIndex, setQualityIndex] = useState(0)
-  const [activeTab, setActiveTab] = useState('listen')
-  const initialized = useRef(false)
-  const tabsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function fetchSong() {
@@ -125,14 +107,6 @@ export default function SongPage() {
     fetchSong()
   }, [id])
 
-  useEffect(() => {
-    if (initialized.current || !song) return
-    initialized.current = true
-    const sections = getSectionTabs(song, albumSongs.length > 0, relatedSongs.length > 0, songCollaborators.length)
-    if (sections.length > 0 && !sections.find(s => s.id === 'listen')) {
-      setActiveTab(sections[0].id)
-    }
-  }, [song, songCollaborators, albumSongs, relatedSongs])
 
   if (loading) return <LoadingSpinner />
   if (!song) return (
@@ -140,15 +114,12 @@ export default function SongPage() {
   )
 
   const coverUrl = song.cover || (song.album && song.album.cover) || getYouTubeThumbnail(song.youtube_embed_url)
-  const tabs = getSectionTabs(song, albumSongs.length > 0, relatedSongs.length > 0, songCollaborators.length)
 
   return (
     <PageShell>
-      <PageBackdrop image={coverUrl} />
-      <AmbientGradient />
 
-      {/* Full-screen cinematic hero */}
-      <div className="relative w-full overflow-hidden" style={{ minHeight: 'clamp(50vh, 60vh, 70vh)' }}>
+      {/* 16:9 hero banner */}
+      <div className="relative w-full overflow-hidden aspect-video">
         {song.youtube_embed_url ? (
           <div className="absolute inset-0">
             <YouTubeHeroPlayer
@@ -175,13 +146,8 @@ export default function SongPage() {
           </div>
         )}
 
-        {/* Gradient veil */}
-        <div className="absolute inset-0" style={{
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 50%, var(--am-bg) 100%)',
-        }} />
-
         {/* Hero content */}
-        <div className="relative z-10 flex items-end h-full min-h-[clamp(50vh,60vh,70vh)] px-5 lg:px-8 pb-8 lg:pb-12">
+        <div className="relative z-10 flex items-end h-full px-5 lg:px-8 pb-8 lg:pb-12">
           <FadeInView direction="up" distance={30} className="w-full">
             <div className="flex items-end gap-5 lg:gap-8">
               {coverUrl ? (
@@ -222,41 +188,10 @@ export default function SongPage() {
       </div>
 
       <PageContent>
-        {/* Sticky section navigation */}
-        {tabs.length > 0 && (
-          <div
-            ref={tabsRef}
-            className="sticky top-0 z-20 backdrop-blur-xl border-b overflow-x-auto scrollbar-hide"
-            style={{
-              background: 'rgba(var(--am-bg-rgb, 10,10,10), 0.7)',
-              borderColor: 'var(--am-border)',
-              WebkitBackdropFilter: 'blur(20px)',
-            }}
-          >
-            <div className="flex gap-1 px-5 lg:px-8 py-2">
-              {tabs.map(section => (
-                <button
-                  key={section.id}
-                  onClick={() => setActiveTab(section.id)}
-                  className={cn(
-                    'relative px-4 py-2 text-[13px] font-semibold transition-colors rounded-full',
-                    activeTab === section.id
-                      ? 'text-white'
-                      : 'text-[var(--am-text-3)] hover:text-[var(--am-text-2)]'
-                  )}
-                  style={activeTab === section.id ? { background: 'var(--am-accent)' } : undefined}
-                >
-                  {section.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Sections */}
         <div className="px-5 lg:px-8 py-6 space-y-12">
           {/* Listen On */}
-          {activeTab === 'listen' && song.links && song.links.length > 0 && (
+          {song.links && song.links.length > 0 && (
             <FadeInView key="listen">
               <SectionTitle className="mb-5">Listen On</SectionTitle>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -288,7 +223,7 @@ export default function SongPage() {
           )}
 
           {/* Preview */}
-          {activeTab === 'preview' && song.youtube_embed_url && (
+          {song.youtube_embed_url && (
             <FadeInView key="preview">
               <SectionTitle className="mb-5">Preview</SectionTitle>
               <div className="max-w-2xl">
@@ -298,33 +233,32 @@ export default function SongPage() {
           )}
 
           {/* Artists / People */}
-          {activeTab === 'people' && songCollaborators.length > 0 && (
+          {songCollaborators.length > 0 && (
             <FadeInView key="people">
               <SectionTitle className="mb-5">Artists</SectionTitle>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 {song.song_artists?.map((sa) => (
                   <Link
                     key={sa.id}
                     to={`/artist/${sa.artist_id}`}
-                    className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                    className="flex flex-col items-center gap-3 p-4 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] aspect-[3/4]"
                     style={{
                       background: 'var(--am-glass-bg)',
                       backdropFilter: 'blur(12px)',
                       WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid var(--am-border)',
                     }}
                   >
                     {sa.artist?.image ? (
-                      <img src={sa.artist.image} alt={sa.artist.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-white/10" />
+                      <img src={sa.artist.image} alt={sa.artist.name} className="w-full flex-1 object-cover rounded-lg ring-2 ring-white/10" style={{ minHeight: 0 }} />
                     ) : (
-                      <div className="w-11 h-11 rounded-full flex items-center justify-center text-[15px] font-bold ring-2 ring-white/10" style={{ background: 'var(--am-surface-2)', color: 'var(--am-text-3)' }}>
+                      <div className="w-full flex-1 flex items-center justify-center text-2xl font-bold rounded-lg ring-2 ring-white/10" style={{ background: 'var(--am-surface-2)', color: 'var(--am-text-3)', minHeight: 0 }}>
                         {sa.artist?.name?.charAt(0) || '?'}
                       </div>
                     )}
-                    <div>
-                      <p className="text-[14px] font-semibold">{sa.artist?.name || 'Unknown'}</p>
+                    <div className="text-center w-full flex-shrink-0">
+                      <p className="text-[13px] font-semibold truncate">{sa.artist?.name || 'Unknown'}</p>
                       {sa.role && (
-                        <Caption className="mt-0.5">{sa.role}</Caption>
+                        <Caption className="mt-0.5 truncate">{sa.role}</Caption>
                       )}
                     </div>
                   </Link>
@@ -334,7 +268,7 @@ export default function SongPage() {
           )}
 
           {/* Lyrics */}
-          {activeTab === 'lyrics' && song.lyrics && (
+          {song.lyrics && (
             <FadeInView key="lyrics">
               <SectionTitle className="mb-5">Lyrics</SectionTitle>
               <FloatingSurface className="overflow-hidden">
@@ -375,7 +309,7 @@ export default function SongPage() {
           )}
 
           {/* Album Songs */}
-          {activeTab === 'album-songs' && albumSongs.length > 0 && (
+          {albumSongs.length > 0 && (
             <FadeInView key="album-songs">
               <SectionTitle className="mb-5">Album Songs</SectionTitle>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -387,7 +321,7 @@ export default function SongPage() {
           )}
 
           {/* Related */}
-          {activeTab === 'related' && relatedSongs.length > 0 && (
+          {relatedSongs.length > 0 && (
             <FadeInView key="related">
               <SectionTitle className="mb-5">Related Songs</SectionTitle>
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
