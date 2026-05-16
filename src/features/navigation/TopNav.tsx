@@ -60,20 +60,17 @@ export default function TopNav() {
     <>
       <motion.header
         initial={false}
-        animate={{ y: navVisible ? 0 : -100, opacity: navVisible ? 1 : 0 }}
-        transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-        className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 px-4 pointer-events-none"
+        animate={{ y: navVisible ? 0 : -80 }}
+        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        className="fixed top-0 left-0 right-0 z-50 h-[52px] transition-colors duration-300"
+        style={{
+          background: scrolled ? 'var(--am-glass-bg)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(24px)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(24px)' : 'none',
+          borderBottom: scrolled ? '1px solid var(--am-border)' : '1px solid transparent',
+        }}
       >
-        <motion.div
-          className="flex items-center h-11 gap-2 px-3 rounded-full pointer-events-auto transition-all duration-500 max-w-[1300px] w-full mx-auto"
-          style={{
-            background: scrolled ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)',
-            backdropFilter: scrolled ? 'blur(40px)' : 'blur(20px)',
-            WebkitBackdropFilter: scrolled ? 'blur(40px)' : 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.3)' : 'none',
-          }}
-        >
+        <div className="flex items-center h-full px-4 gap-3 max-w-[1800px] mx-auto">
           <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1">
             <motion.div
               className="w-7 h-7 rounded-lg flex items-center justify-center"
@@ -215,7 +212,7 @@ export default function TopNav() {
           >
             <Menu className="w-5 h-5" />
           </motion.button>
-        </motion.div>
+        </div>
       </motion.header>
 
       <AnimatePresence>
