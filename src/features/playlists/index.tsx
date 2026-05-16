@@ -170,7 +170,7 @@ export default function PlaylistsPage() {
         {showCreate && (
           <div className="mx-5 lg:mx-8 mb-6 rounded-2xl p-5 max-w-sm"
             style={{ background: 'var(--am-surface)', border: '1px solid var(--am-border)' }}>
-            <SectionTitle as="h2" className="text-[17px] mb-4">New Playlist</SectionTitle>
+            <SectionTitle className="text-[17px] mb-4">New Playlist</SectionTitle>
             <input
               type="text"
               value={newName}
