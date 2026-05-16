@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { useParams } from 'react-router-dom'
 import { supabase, fetchSongsWithArtists } from '@/lib/supabase'
-
 import { ARTIST_PLATFORM_CONFIG } from '@/types'
 import type { Artist, Song, Album, ArtistLink } from '@/types'
-import { PageShell, PageContent } from '@/shared/layout'
-import { SectionTitle, BodyText } from '@/shared/typography'
+import { AppFrame, AmbientArtworkLayer, ContentRail } from '@/shared/layout'
+import { SectionTitle, CinematicDescription, FloatingMetadata } from '@/shared/typography'
 import { FadeInView } from '@/shared/motion'
-import CinematicCard from '@/shared/ui/CinematicCard'
+import EditorialCard from '@/shared/ui/EditorialCard'
+import GlassMediaCard from '@/shared/ui/GlassMediaCard'
+import ImmersiveRailCard from '@/shared/ui/ImmersiveRailCard'
 import LoadingSpinner from '@/shared/ui/LoadingSpinner'
-
 
 const platformConfig = ARTIST_PLATFORM_CONFIG
 
@@ -22,9 +21,6 @@ export default function ArtistPage() {
   const [artistLinks, setArtistLinks] = useState<ArtistLink[]>([])
   const [relatedArtists, setRelatedArtists] = useState<Artist[]>([])
   const [loading, setLoading] = useState(true)
-
-
-
 
   useEffect(() => {
     async function fetchData() {
@@ -85,77 +81,90 @@ export default function ArtistPage() {
   if (!artist) return <div className="px-6 py-20 text-center" style={{ color: 'var(--am-text-2)' }}>Artist not found</div>
 
   return (
-    <PageShell>
-      <PageContent>
-        {/* Artist hero */}
-        <div className="relative w-full aspect-video overflow-hidden">
-          {artist.image ? (
-            <img src={artist.image} alt={artist.name} className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
-              <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
-            </div>
-          )}
-          <div className="absolute inset-0" style={{
-            background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 50%)',
-          }} />
-          <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
-            <h1 className="text-2xl lg:text-4xl font-bold tracking-tight leading-tight text-white drop-shadow-lg" style={{ fontFamily: 'var(--font-display)' }}>{artist.name}</h1>
-            <p className="text-[14px] mt-1 text-white/70">
-              {songs.length} {songs.length === 1 ? 'song' : 'songs'}
-              {albums.length > 0 && ` · ${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`}
-            </p>
+    <AppFrame>
+      <AmbientArtworkLayer image={artist.image} />
+
+      {/* Documentary-style hero banner */}
+      <div className="relative w-full aspect-video overflow-hidden">
+        {artist.image ? (
+          <img src={artist.image} alt={artist.name} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'var(--am-surface-2)' }}>
+            <svg viewBox="0 0 24 24" className="w-16 h-16" style={{ fill: 'var(--am-text-3)' }}>
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
           </div>
+        )}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(0deg, var(--am-bg) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)',
+        }} />
+        <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-10">
+          <FadeInView direction="up">
+            <FloatingMetadata className="mb-4">
+              <span>Artist</span>
+              <span style={{ opacity: 0.4 }}>·</span>
+              <span>{songs.length} {songs.length === 1 ? 'song' : 'songs'}{albums.length > 0 && ` · ${albums.length} ${albums.length === 1 ? 'album' : 'albums'}`}</span>
+            </FloatingMetadata>
+            <h1 className="text-3xl lg:text-6xl font-bold tracking-tight leading-tight text-white drop-shadow-xl" style={{ fontFamily: 'var(--font-display)' }}>
+              {artist.name}
+            </h1>
+          </FadeInView>
         </div>
+      </div>
 
-        {/* Section content */}
-        <div className="px-5 lg:px-8 pt-8 pb-12 space-y-12">
-          {artist.bio && (
-            <BodyText muted className="whitespace-pre-line max-w-3xl">{artist.bio}</BodyText>
-          )}
+      {/* Content */}
+      <div className="relative z-10 px-5 lg:px-8 py-8 space-y-14">
 
-          {songs.length > 0 && (
-            <div>
-              <SectionTitle className="mb-5">Songs</SectionTitle>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                {songs.map((song, i) => (
-                  <div key={song.id} className="flex-shrink-0 w-40">
-                    <CinematicCard
-                      to={`/song/${song.id}`}
-                      image={song.cover}
-                      title={song.title}
-                      subtitle={song.artists?.map(a => a.name).join(', ')}
-                      index={i}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Bio */}
+        {artist.bio && (
+          <FadeInView>
+            <CinematicDescription className="max-w-3xl whitespace-pre-line">
+              {artist.bio}
+            </CinematicDescription>
+          </FadeInView>
+        )}
 
-          {albums.length > 0 && (
-            <div>
-              <SectionTitle className="mb-5">Albums</SectionTitle>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                {albums.map((album, i) => (
-                  <div key={album.id} className="flex-shrink-0 w-40">
-                    <CinematicCard
-                      to={`/album/${album.id}`}
-                      image={album.cover}
-                      title={album.title}
-                      subtitle={album.artist?.name}
-                      index={i}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Top Songs */}
+        {songs.length > 0 && (
+          <FadeInView>
+            <ContentRail title="Songs" className="!px-0">
+              {songs.map((song) => (
+                <GlassMediaCard
+                  key={song.id}
+                  to={`/song/${song.id}`}
+                  image={song.cover}
+                  title={song.title}
+                  subtitle={song.artists?.map(a => a.name).join(', ')}
+                  size="md"
+                />
+              ))}
+            </ContentRail>
+          </FadeInView>
+        )}
 
-          {artistLinks.length > 0 && (
-            <div className="flex flex-wrap gap-3 max-w-xl">
+        {/* Essential Albums */}
+        {albums.length > 0 && (
+          <FadeInView>
+            <ContentRail title="Albums" className="!px-0">
+              {albums.map((album) => (
+                <EditorialCard
+                  key={album.id}
+                  to={`/album/${album.id}`}
+                  image={album.cover}
+                  title={album.title}
+                  subtitle={album.artist?.name}
+                  size="md"
+                />
+              ))}
+            </ContentRail>
+          </FadeInView>
+        )}
+
+        {/* Links */}
+        {artistLinks.length > 0 && (
+          <FadeInView>
+            <SectionTitle className="mb-5">Links</SectionTitle>
+            <div className="flex flex-wrap gap-3">
               {artistLinks.map((link) => {
                 const config = platformConfig[link.platform as keyof typeof platformConfig]
                 return (
@@ -164,63 +173,40 @@ export default function ArtistPage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:scale-105"
-                    style={{ background: 'var(--am-surface-2)', border: '1px solid var(--am-border)' }}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[12px] font-semibold transition-all hover:scale-105 active:scale-95"
+                    style={{
+                      background: 'rgba(255,255,255,0.06)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                    }}
                   >
                     {config?.logo && (
-                      <img src={config.logo} alt={config.name} className="w-5 h-5 object-contain" />
+                      <img src={config.logo} alt={config.name} className="w-4 h-4 object-contain" />
                     )}
                     <span style={{ color: 'var(--am-text-2)' }}>{config?.name || link.platform}</span>
                   </a>
                 )
               })}
             </div>
-          )}
-
-
-        </div>
-
-        {/* Related Artists */}
-        {relatedArtists.length > 0 && (
-          <FadeInView>
-            <section className="px-5 lg:px-8 pb-20 lg:pb-24">
-              <SectionTitle className="mb-6">Related Artists</SectionTitle>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                {relatedArtists.slice(0, 10).map((related, i) => (
-                  <motion.div
-                    key={related.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: i * 0.05 }}
-                    className="flex-shrink-0 w-32 group"
-                  >
-                    <Link to={`/artist/${related.id}`} className="block">
-                      <motion.div
-                        className="w-32 h-32 rounded-full overflow-hidden mb-2"
-                        style={{ background: 'var(--am-surface-2)' }}
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {related.image ? (
-                          <img src={related.image} alt={related.name} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" className="w-10 h-10" style={{ fill: 'var(--am-text-3)' }}>
-                              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                            </svg>
-                          </div>
-                        )}
-                      </motion.div>
-                      <p className="text-[13px] font-semibold truncate text-center">{related.name}</p>
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-            </section>
           </FadeInView>
         )}
-      </PageContent>
-    </PageShell>
+      </div>
+
+      {/* Related Artists */}
+      {relatedArtists.length > 0 && (
+        <div className="relative z-10 pb-24">
+          <ContentRail title="Related Artists">
+            {relatedArtists.slice(0, 10).map((related) => (
+              <ImmersiveRailCard
+                key={related.id}
+                to={`/artist/${related.id}`}
+                image={related.image}
+                title={related.name}
+              />
+            ))}
+          </ContentRail>
+        </div>
+      )}
+    </AppFrame>
   )
 }
